@@ -1,65 +1,57 @@
 import Image from "next/image";
+import Link from "next/link";
 
 export default function Home() {
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
+    // min-h-screen ব্যবহার করায় এটি পুরো স্ক্রিন জুড়ে জায়গা নেবে, সাদা স্ক্রিন উধাও হয়ে যাবে!
+    <div className="min-h-screen flex flex-col justify-center items-center bg-stone-50 font-sans text-stone-900 selection:bg-amber-800 selection:text-white">
+      
+      <main className="flex flex-col items-center justify-center text-center px-6 max-w-2xl py-20 mt-20">
+        
+        {/* Next.js Logo - Fixed aspect ratio warning with h-auto className */}
+        <div className="mb-12">
+          <Image
+            src="/next.svg"
+            alt="Next.js logo"
+            width={140}
+            height={28}
+            priority
+            className="h-auto w-auto dark:invert opacity-80"
+          />
+        </div>
+
+        {/* Brand & Setup Message */}
+        <div className="flex flex-col items-center gap-4 mb-10">
+          <h1 className="text-4xl md:text-5xl font-serif font-light tracking-wide leading-tight text-stone-800">
+            Atelier Luxury Furniture
           </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
+          <p className="max-w-md text-base md:text-lg font-light leading-relaxed text-stone-600">
+            Development environment status: <span className="text-emerald-700 font-medium">Ready</span>. 
+            To start building your portfolio application, open and edit <code className="bg-stone-200/60 px-1.5 py-0.5 rounded font-mono text-sm">src/app/page.tsx</code>.
           </p>
         </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+
+        {/* Call to Actions (UX Clean Targets) */}
+        <div className="flex flex-col sm:flex-row gap-4 w-full justify-center">
+          <Link
+            className="flex h-12 items-center justify-center gap-2 rounded bg-amber-800 px-8 text-sm uppercase tracking-wider text-white transition-colors hover:bg-amber-950 focus:outline-none focus:ring-2 focus:ring-amber-700 min-w-[160px]"
+            href="/products"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
+            Explore Store
+          </Link>
+          
           <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
+            className="flex h-12 items-center justify-center rounded border border-solid border-stone-300 px-8 text-sm uppercase tracking-wider text-stone-700 transition-colors hover:bg-stone-100 focus:outline-none focus:ring-2 focus:ring-stone-500 min-w-[160px]"
+            href="https://nextjs.org/docs"
             target="_blank"
             rel="noopener noreferrer"
           >
             Documentation
           </a>
         </div>
+
       </main>
+
     </div>
   );
 }

@@ -1,0 +1,146 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useCartStore } from '@/store/cart.store';
+import AccountMenu from './AccountMenu';
+import { UserSession, UserRole } from '@/lib/auth/roles';
+import MobileMenuDrawer from './MobileMenuDrawer';
+
+export default function Navbar() {
+  const pathname = usePathname();
+  const [isOpen, setIsOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
+  const cartItemsCount = useCartStore((state) => state.items.reduce((acc, item) => acc + item.quantity, 0));
+
+  // 1. ডামি গ্লোবাল সেশন স্টেট (লগইন করা অবস্থায় ইনিশিয়াল ভ্যালু)
+  const [session, setSession] = useState<UserSession | null>({
+    id: '1',
+    name: 'Saidul',
+    email: 'saidul@example.com',
+    role: UserRole.ADMIN, // আপনার এনাম অনুযায়ী টাইপ বা স্ট্রিং
+  });
+
+  // 2. সাইন আউট হ্যান্ডলার ফাংশন (যা সেশন নাল করে বাটন ও রুট ডাইনামিকালি চেঞ্জ করবে)
+  const handleSignOut = () => {
+    setSession(null);
+  };
+
+  useEffect(() => {
+    const handleScroll = () => setIsScrolled(window.scrollY > 20);
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // 3 routes (logged out)
+  const publicRoutes = [
+    { name: 'Shop', path: '/products' },
+    { name: 'About', path: '/about' },
+    { name: 'Contact', path: '/contact' },
+  ];
+
+  // 5 routes minimum (logged in) including role-based dashboard
+  const getLoggedInRoutes = (role?: string) => [
+    { name: 'Shop', path: '/products' },
+    { name: 'Collections', path: '/categories' },
+    { name: 'Orders', path: '/dashboard/orders' },
+    ...(role === 'ADMIN' || role === 'MANAGER' ? [{ name: 'Inventory', path: '/dashboard/products' }] : []),
+    { name: 'Dashboard', path: `/dashboard/${role?.toLowerCase() || 'user'}` },
+  ];
+
+  const routes = session ? getLoggedInRoutes(session.role) : publicRoutes;
+
+  return (
+    <header
+      className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 font-serif border-b ${
+        isScrolled 
+          ? 'bg-stone-900/95 backdrop-blur-md text-stone-100 border-stone-800 shadow-lg py-3' 
+          : 'bg-stone-50 text-stone-900 border-stone-200 py-5'
+      }`}
+    >
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+        
+        {/* LOGO: Left */}
+        <Link href="/" className="text-xl sm:text-2xl font-bold tracking-widest uppercase focus:outline-none focus:ring-2 focus:ring-amber-700 min-h-[44px] flex items-center">
+          ATELIER
+        </Link>
+
+        {/* DESKTOP NAV LINKS: Center (Collapse <= 768px) */}
+        <nav className="hidden md:flex space-x-8">
+          {routes.map((route) => {
+            const isActive = pathname === route.path;
+            return (
+              <Link
+                key={route.path}
+                href={route.path}
+                className={`text-sm tracking-wide uppercase transition-colors relative py-2 focus:outline-none focus:ring-2 focus:ring-amber-700 rounded ${
+                  isActive ? 'text-amber-600 font-semibold' : 'hover:text-amber-700 text-inherit'
+                }`}
+              >
+                {route.name}
+                {isActive && (
+                  <motion.div
+                    layoutId="activeUnderline"
+                    className="absolute bottom-0 left-0 w-full h-[2px] bg-amber-600"
+                    transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                  />
+                )}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {/* ACTIONS: Right */}
+        <div className="flex items-center space-x-3 sm:space-x-6">
+          {/* Cart Icon Badge */}
+          <Link href="/cart" className="relative p-2 focus:outline-none focus:ring-2 focus:ring-amber-700 rounded min-h-[44px] min-w-[44px] flex items-center justify-center" aria-label="Shopping Cart">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+            </svg>
+            {cartItemsCount > 0 && (
+              <motion.span
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-sans font-bold leading-none text-white bg-amber-700 rounded-full transformation translate-x-1/3 -translate-y-1/3"
+              >
+                {cartItemsCount}
+              </motion.span>
+            )}
+          </Link>
+
+          {/* Account Menu (Dropdown Component - handleSignOut এখানে পাস করা হলো) */}
+          <div className="hidden md:block">
+            <AccountMenu session={session} onSignOut={handleSignOut} />
+          </div>
+
+          {/* Hamburger Menu Icon (Mobile Only) */}
+          <button
+            onClick={() => setIsOpen(true)}
+            className="md:hidden p-2 text-inherit focus:outline-none focus:ring-2 focus:ring-amber-700 rounded min-h-[44px] min-w-[44px] flex items-center justify-center"
+            aria-label="Open Navigation Menu"
+            aria-expanded={isOpen}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+            </svg>
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Menu Drawer Overlay */}
+      <AnimatePresence>
+        {isOpen && (
+          <MobileMenuDrawer 
+            isOpen={isOpen} 
+            onClose={() => setIsOpen(false)} 
+            routes={routes} 
+            session={session}
+            onSignOut={handleSignOut} // মোবাইল ড্রয়ারের জন্যও একই লজিক সিঙ্ক
+          />
+        )}
+      </AnimatePresence>
+    </header>
+  );
+}
