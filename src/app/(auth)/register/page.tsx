@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+// 🛠️ আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী রুট ডিরেক্টরি থেকে authClient ইম্পোর্ট
+import { authClient } from '../../../lib/auth-client'; 
 
 interface RegisterInput {
   name: string;
@@ -15,6 +17,7 @@ interface RegisterInput {
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [serverSuccess, setServerSuccess] = useState<string | null>(null);
 
   const {
     register,
@@ -23,16 +26,30 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<RegisterInput>();
 
-  const password = watch('password'); // Password ম্যাচিং চেক করার জন্য লিসেনার
+  const password = watch('password'); // পাসওয়ার্ড ম্যাচিং ভ্যালিডেশনের জন্য
 
+  // 🚀 Better-Auth এর মাধ্যমে MongoDB-তে ডেটা পাঠানোর মূল ফাংশন
   const onSubmit = async (data: RegisterInput) => {
     setIsLoading(true);
     setServerError(null);
+    setServerSuccess(null);
+
     try {
-      console.log('Posting validated DTO to NestJS endpoint /auth/register:', data);
-      // API call logic here
+      // Better-Auth ক্লায়েন্ট মেথড যা সরাসরি আপনার ব্যাকএন্ড API এবং MongoDB সিঙ্ক করবে
+      const response = await authClient.signUp.email({
+        email: data.email,
+        password: data.password,
+        name: data.name,
+        callbackURL: '/', // অ্যাকাউন্ট তৈরি সফল হলে ইউজার সরাসরি হোম পেজে চলে যাবে
+      });
+
+      if (response?.error) {
+        setServerError(response.error.message || 'Registration failed. Please try again.');
+      } else {
+        setServerSuccess('Account created successfully! Redirecting...');
+      }
     } catch (err: unknown) {
-      setServerError('This email address is already in use.');
+      setServerError('An unexpected network error occurred. Please check your database connection.');
     } finally {
       setIsLoading(false);
     }
@@ -63,9 +80,17 @@ export default function RegisterPage() {
             <p className="text-xs sm:text-sm text-stone-500 mt-2">Register to enjoy secure express checkout and synchronized tracking.</p>
           </div>
 
+          {/* এরর মেসেজ ডিসপ্লে */}
           {serverError && (
             <div className="mb-5 p-3.5 bg-red-50 text-red-700 text-xs sm:text-sm border-l-2 border-red-600 rounded-r">
               {serverError}
+            </div>
+          )}
+
+          {/* সাকসেস মেসেজ ডিসপ্লে */}
+          {serverSuccess && (
+            <div className="mb-5 p-3.5 bg-green-50 text-green-700 text-xs sm:text-sm border-l-2 border-green-600 rounded-r">
+              {serverSuccess}
             </div>
           )}
 
@@ -83,7 +108,7 @@ export default function RegisterPage() {
                 className={`w-full h-11 px-4 text-sm bg-stone-50/50 border rounded focus:outline-none focus:ring-2 focus:ring-amber-700 transition-all ${
                   errors.name ? 'border-red-500 focus:ring-red-500' : 'border-stone-200'
                 }`}
-                placeholder="Alex Carter"
+                placeholder="Said Halder"
               />
               {errors.name && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.name.message}</p>}
             </div>
@@ -104,7 +129,7 @@ export default function RegisterPage() {
                 className={`w-full h-11 px-4 text-sm bg-stone-50/50 border rounded focus:outline-none focus:ring-2 focus:ring-amber-700 transition-all ${
                   errors.email ? 'border-red-500 focus:ring-red-500' : 'border-stone-200'
                 }`}
-                placeholder="alex@example.com"
+                placeholder="saidul@islam.com"
               />
               {errors.email && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.email.message}</p>}
             </div>
@@ -122,7 +147,7 @@ export default function RegisterPage() {
                 className={`w-full h-11 px-4 text-sm bg-stone-50/50 border rounded focus:outline-none focus:ring-2 focus:ring-amber-700 transition-all ${
                   errors.password ? 'border-red-500 focus:ring-red-500' : 'border-stone-200'
                 }`}
-                placeholder="Minimum 8 characters"
+                placeholder="••••••••"
               />
               {errors.password && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.password.message}</p>}
             </div>
@@ -140,7 +165,7 @@ export default function RegisterPage() {
                 className={`w-full h-11 px-4 text-sm bg-stone-50/50 border rounded focus:outline-none focus:ring-2 focus:ring-amber-700 transition-all ${
                   errors.confirmPassword ? 'border-red-500 focus:ring-red-500' : 'border-stone-200'
                 }`}
-                placeholder="Re-type your password"
+                placeholder="••••••••"
               />
               {errors.confirmPassword && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.confirmPassword.message}</p>}
             </div>

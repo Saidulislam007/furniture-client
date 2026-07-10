@@ -6,26 +6,55 @@ import { usePathname } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useCartStore } from '@/store/cart.store';
 import AccountMenu from './AccountMenu';
-import { UserSession, UserRole } from '@/lib/auth/roles';
 import MobileMenuDrawer from './MobileMenuDrawer';
+// 🛠️ আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী ৩ লেভেল ওপরে রুট থেকে lib/auth-client
+import { authClient } from '../../lib/auth-client';
+
+// 💡 এক্সটার্নাল ফাইল পাথ এরর এড়াতে ইন্টারফেসটি এখানেই ডিফাইন করা হলো
+interface UserSession {
+  id: string;
+  email: string;
+  name: string;
+  role: string;
+  emailVerified: boolean;
+  image?: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export default function Navbar() {
   const pathname = usePathname();
   const [isOpen, setIsOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
+  
+  // Zustand Cart Items tracking
   const cartItemsCount = useCartStore((state) => state.items.reduce((acc, item) => acc + item.quantity, 0));
 
-  // 1. ডামি গ্লোবাল সেশন স্টেট (লগইন করা অবস্থায় ইনিশিয়াল ভ্যালু)
-  const [session, setSession] = useState<UserSession | null>({
-    id: '1',
-    name: 'Saidul',
-    email: 'saidul@example.com',
-    role: UserRole.ADMIN, // আপনার এনাম অনুযায়ী টাইপ বা স্ট্রিং
-  });
+  // 1. Better-Auth রিয়েল-টাইম সেশন হুক
+  const { data: authData, isPending } = authClient.useSession();
+  
+  // Better-Auth এর ডাটা স্ট্রাকচারকে আমাদের UserSession ইন্টারফেসে ম্যাপ করা
+  const session: UserSession | null = authData?.user ? {
+    id: authData.user.id,
+    name: authData.user.name,
+    email: authData.user.email,
+    role: authData.user.role || 'user', 
+    emailVerified: authData.user.emailVerified,
+    image: authData.user.image,
+    createdAt: new Date(authData.user.createdAt),
+    updatedAt: new Date(authData.user.updatedAt),
+  } : null;
 
-  // 2. সাইন আউট হ্যান্ডলার ফাংশন (যা সেশন নাল করে বাটন ও রুট ডাইনামিকালি চেঞ্জ করবে)
-  const handleSignOut = () => {
-    setSession(null);
+  // 2. Better-Auth অফিশিয়াল সাইন আউট হ্যান্ডলার
+  const handleSignOut = async () => {
+    await authClient.signOut({
+      fetchOptions: {
+        onSuccess: () => {
+          setIsOpen(false);
+          window.location.href = '/login'; 
+        }
+      }
+    });
   };
 
   useEffect(() => {
@@ -41,16 +70,19 @@ export default function Navbar() {
     { name: 'Contact', path: '/contact' },
   ];
 
-  // 5 routes minimum (logged in) including role-based dashboard
+  // 5 routes minimum (logged in) - Better-Auth lowercase রুল অনুযায়ী ম্যাচিং
   const getLoggedInRoutes = (role?: string) => [
     { name: 'Shop', path: '/products' },
     { name: 'Collections', path: '/categories' },
     { name: 'Orders', path: '/dashboard/orders' },
-    ...(role === 'ADMIN' || role === 'MANAGER' ? [{ name: 'Inventory', path: '/dashboard/products' }] : []),
-    { name: 'Dashboard', path: `/dashboard/${role?.toLowerCase() || 'user'}` },
+    ...(role === 'admin' || role === 'manager' ? [{ name: 'Inventory', path: '/dashboard/products' }] : []),
+    { name: 'Dashboard', path: `/dashboard/${role || 'user'}` },
   ];
 
   const routes = session ? getLoggedInRoutes(session.role) : publicRoutes;
+
+  // সেশন লোড হওয়ার সময় ফ্লিকারিং এড়াতে একটি মিনিমাল সেফটি চেক
+  if (isPending) return <div className="h-20 bg-stone-50" />;
 
   return (
     <header
@@ -67,7 +99,7 @@ export default function Navbar() {
           ATELIER
         </Link>
 
-        {/* DESKTOP NAV LINKS: Center (Collapse <= 768px) */}
+        {/* DESKTOP NAV LINKS: Center */}
         <nav className="hidden md:flex space-x-8">
           {routes.map((route) => {
             const isActive = pathname === route.path;
@@ -110,7 +142,7 @@ export default function Navbar() {
             )}
           </Link>
 
-          {/* Account Menu (Dropdown Component - handleSignOut এখানে পাস করা হলো) */}
+          {/* Account Menu Component */}
           <div className="hidden md:block">
             <AccountMenu session={session} onSignOut={handleSignOut} />
           </div>
@@ -137,7 +169,7 @@ export default function Navbar() {
             onClose={() => setIsOpen(false)} 
             routes={routes} 
             session={session}
-            onSignOut={handleSignOut} // মোবাইল ড্রয়ারের জন্যও একই লজিক সিঙ্ক
+            onSignOut={handleSignOut}
           />
         )}
       </AnimatePresence>
