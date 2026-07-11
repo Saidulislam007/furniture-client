@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation'; 
 import { motion } from 'framer-motion';
+import { authClient } from '../../../lib/auth-client'; 
 
 interface LoginInput {
   email: string;
@@ -11,6 +13,7 @@ interface LoginInput {
 }
 
 export default function LoginPage() {
+  const router = useRouter(); 
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -23,19 +26,43 @@ export default function LoginPage() {
   const onSubmit = async (data: LoginInput) => {
     setIsLoading(true);
     setServerError(null);
+
     try {
-      console.log('Sending secure payload to NestJS Auth API:', data);
-      // API call logic here
+      // 🚀 ইউজার এখানে ইমেল এবং পাসওয়ার্ড দিলেই কেবল সেশন সাকসেসফুলি স্টার্ট হবে
+      const response = await authClient.signIn.email({
+        email: data.email,
+        password: data.password,
+        callbackURL: '/', 
+      });
+
+      if (response?.error) {
+        setServerError(response.error.message || 'Invalid email or password. Please try again.');
+      } else {
+        router.push('/');
+        router.refresh(); // নেভবার রিয়েল-টাইম আপডেট করার জন্য ফোর্স রিফ্রেশ
+      }
     } catch (err: unknown) {
-      setServerError('Invalid email or password. Please try again.');
+      setServerError('An unexpected network error occurred. Please check your connection.');
     } finally {
       setIsLoading(false);
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setServerError(null);
+    try {
+      await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: '/',
+      });
+    } catch (err: unknown) {
+      setServerError('Google sign-in failed. Please try again.');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-stone-50 text-stone-950 flex font-sans pt-20">
-      {/* Left Side: Luxury Editorial Brand Image (Visible from 1024px to 1920px) */}
+      {/* Left Side: Luxury Editorial Brand Image */}
       <div className="hidden lg:flex lg:w-1/2 bg-stone-900 relative overflow-hidden items-center justify-center p-12">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1200')] bg-cover bg-center opacity-40 mix-blend-luminosity transition-transform duration-700 hover:scale-105" />
         <div className="relative z-10 max-w-md text-stone-100 font-serif">
@@ -46,7 +73,7 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* Right Side: Fluid Form Box (320px to 1920px responsive) */}
+      {/* Right Side: Fluid Form Box */}
       <div className="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-8 md:px-16 lg:px-12 xl:px-24 py-12">
         <motion.div 
           initial={{ opacity: 0, y: 15 }} 
@@ -81,7 +108,7 @@ export default function LoginPage() {
                 className={`w-full h-11 px-4 text-sm bg-stone-50/50 border rounded focus:outline-none focus:ring-2 focus:ring-amber-700 transition-all ${
                   errors.email ? 'border-red-500 focus:ring-red-500' : 'border-stone-200'
                 }`}
-                placeholder="alex@example.com"
+                placeholder="saidul@islam.com"
               />
               {errors.email && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.email.message}</p>}
             </div>
@@ -97,10 +124,7 @@ export default function LoginPage() {
                 disabled={isLoading}
                 {...register('password', { 
                   required: 'Password is required',
-                  minLength: {
-                    value: 8,
-                    message: 'Password must be at least 8 characters'
-                  }
+                  minLength: { value: 8, message: 'Password must be at least 8 characters' }
                 })}
                 className={`w-full h-11 px-4 text-sm bg-stone-50/50 border rounded focus:outline-none focus:ring-2 focus:ring-amber-700 transition-all ${
                   errors.password ? 'border-red-500 focus:ring-red-500' : 'border-stone-200'
@@ -127,7 +151,7 @@ export default function LoginPage() {
           <button
             type="button"
             className="w-full h-12 border border-stone-200 text-sm font-medium text-stone-700 rounded flex items-center justify-center gap-3 hover:bg-stone-50 transition-colors min-h-[44px]"
-            onClick={() => console.log('Redirecting to NestJS Google OAuth url')}
+            onClick={handleGoogleSignIn}
           >
             Google Identity
           </button>

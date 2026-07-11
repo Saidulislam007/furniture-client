@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
-// 🛠️ আপনার ফোল্ডার স্ট্রাকচার অনুযায়ী রুট ডিরেক্টরি থেকে authClient ইম্পোর্ট
 import { authClient } from '../../../lib/auth-client'; 
 
 interface RegisterInput {
@@ -15,6 +15,7 @@ interface RegisterInput {
 }
 
 export default function RegisterPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [serverSuccess, setServerSuccess] = useState<string | null>(null);
@@ -26,32 +27,52 @@ export default function RegisterPage() {
     formState: { errors },
   } = useForm<RegisterInput>();
 
-  const password = watch('password'); // পাসওয়ার্ড ম্যাচিং ভ্যালিডেশনের জন্য
+  const password = watch('password'); 
 
-  // 🚀 Better-Auth এর মাধ্যমে MongoDB-তে ডেটা পাঠানোর মূল ফাংশন
   const onSubmit = async (data: RegisterInput) => {
     setIsLoading(true);
     setServerError(null);
     setServerSuccess(null);
 
     try {
-      // Better-Auth ক্লায়েন্ট মেথড যা সরাসরি আপনার ব্যাকএন্ড API এবং MongoDB সিঙ্ক করবে
+      // ১. MongoDB-তে ইউজার ক্রিয়েট করা হচ্ছে
       const response = await authClient.signUp.email({
         email: data.email,
         password: data.password,
         name: data.name,
-        callbackURL: '/', // অ্যাকাউন্ট তৈরি সফল হলে ইউজার সরাসরি হোম পেজে চলে যাবে
       });
 
       if (response?.error) {
         setServerError(response.error.message || 'Registration failed. Please try again.');
+        setIsLoading(false);
       } else {
-        setServerSuccess('Account created successfully! Redirecting...');
+        // 🚀 ফোর্সড সাইন-আউট: কোনো অবস্থাতেই যেন অটো-লগইন সেশন তৈরি না থাকে
+        await authClient.signOut({
+          redirect: false // নেক্সট-জেএস রিডাইরেকশন আমরা ম্যানুয়ালি হ্যান্ডেল করব
+        });
+
+        setServerSuccess('Account created successfully! Redirecting to login page...');
+        
+        // ⏳ ৩ সেকেন্ড পর লগইন পেজে রিডাইরেক্ট হবে
+        setTimeout(() => {
+          router.push('/login');
+        }, 3000);
       }
     } catch (err: unknown) {
       setServerError('An unexpected network error occurred. Please check your database connection.');
-    } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setServerError(null);
+    try {
+      await authClient.signIn.social({
+        provider: 'google',
+        callbackURL: '/',
+      });
+    } catch (err: unknown) {
+      setServerError('Google sign-in failed. Please try again.');
     }
   };
 
@@ -80,14 +101,12 @@ export default function RegisterPage() {
             <p className="text-xs sm:text-sm text-stone-500 mt-2">Register to enjoy secure express checkout and synchronized tracking.</p>
           </div>
 
-          {/* এরর মেসেজ ডিসপ্লে */}
           {serverError && (
             <div className="mb-5 p-3.5 bg-red-50 text-red-700 text-xs sm:text-sm border-l-2 border-red-600 rounded-r">
               {serverError}
             </div>
           )}
 
-          {/* সাকসেস মেসেজ ডিসপ্লে */}
           {serverSuccess && (
             <div className="mb-5 p-3.5 bg-green-50 text-green-700 text-xs sm:text-sm border-l-2 border-green-600 rounded-r">
               {serverSuccess}
@@ -178,6 +197,19 @@ export default function RegisterPage() {
               {isLoading ? 'Creating Account...' : 'Open Account'}
             </button>
           </form>
+
+          <div className="relative my-6 text-center">
+            <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-stone-200"></div></div>
+            <span className="relative bg-white px-3 text-xs uppercase tracking-wider text-stone-400">Or Continue With</span>
+          </div>
+
+          <button
+            type="button"
+            className="w-full h-12 border border-stone-200 text-sm font-medium text-stone-700 rounded flex items-center justify-center gap-3 hover:bg-stone-50 transition-colors min-h-[44px]"
+            onClick={handleGoogleSignIn}
+          >
+            Google Identity
+          </button>
 
           <p className="mt-6 text-center text-xs sm:text-sm text-stone-600">
             Already have an account?{' '}

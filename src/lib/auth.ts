@@ -4,12 +4,10 @@ import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
 const uri = process.env.MONGODB_URI;
 
-// 1. Strict Environment Validation (Standard Rule)
 if (!uri) {
   throw new Error("Missing MONGODB_URI environment variable inside configuration.");
 }
 
-// 2. Prevent Multiple MongoClient Connections in Next.js Development (Global Caching)
 const globalForMongo = globalThis as unknown as {
   _mongoClient?: MongoClient;
 };
@@ -25,15 +23,31 @@ if (process.env.NODE_ENV === "production") {
   client = globalForMongo._mongoClient;
 }
 
-// 3. Target Specific Database Instance
 const db = client.db("furniture-server");
 
 export const auth = betterAuth({
   database: mongodbAdapter(db, {
-    client: client, // Transactions এনাবল রাখার জন্য ক্লায়েন্ট পাস করা হলো
+    client: client,
   }),
-  // প্রজেক্টের পরবর্তী ধাপে ইমেল/পাসওয়ার্ড বা ওঅথ প্রোভাইডার এখানে যুক্ত হবে
+
+  // 🚀 Better-Auth এর অফিশিয়াল ডিরেক্ট কাস্টম ফিল্ড ম্যাপিং (Advanced স্লাইডিং বাদ)
+  user: {
+    additionalFields: {
+      role: {
+        type: "string",
+        defaultValue: "user", // ডেটাবেসে নতুন ইউজারের ডিফল্ট রোল হবে 'user'
+      },
+    },
+  },
+  socialProviders: {
+        google: { 
+            clientId: process.env.GOOGLE_CLIENT_ID as string, 
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET as string, 
+        }, 
+    },
+
   emailAndPassword: {
     enabled: true,
   },
+  
 });
