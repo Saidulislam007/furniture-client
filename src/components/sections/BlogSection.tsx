@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import Link from 'next/link';
+import Link from 'next/link'; // 🚀 ফিক্স: নিশ্চিত করা হলো সঠিক Next.js রাউটার ইম্পোর্ট
 import { motion } from 'framer-motion';
 
 // ─── TYPES & INTERFACES ───
@@ -53,14 +53,14 @@ export const BlogCard: React.FC<{ post: BlogPostData; index: number }> = ({ post
       className="group flex flex-col space-y-4 bg-white border border-stone-200/60 p-4 sm:p-5 rounded-sm hover:shadow-md transition-shadow duration-500"
     >
       {/* Article Featured Image */}
-      <div className="w-full aspect-[16/10] overflow-hidden bg-stone-100 relative rounded-sm">
+      <Link href={`/blog/${post.slug}`} className="block w-full aspect-[16/10] overflow-hidden bg-stone-100 relative rounded-sm focus:outline-none">
         <motion.div
           className="w-full h-full bg-cover bg-center absolute inset-0 mix-blend-luminosity group-hover:mix-blend-normal"
           style={{ backgroundImage: `url('${post.featuredImage}')` }}
           whileHover={{ scale: 1.03 }}
           transition={{ duration: 0.6, ease: 'easeOut' }}
         />
-      </div>
+      </Link>
 
       {/* Meta Analytics Grid */}
       <div className="flex items-center justify-between text-[11px] font-sans tracking-wider text-stone-400">
@@ -71,8 +71,9 @@ export const BlogCard: React.FC<{ post: BlogPostData; index: number }> = ({ post
       {/* Title & Excerpt Container */}
       <div className="space-y-2 flex-1 flex flex-col justify-between">
         <div className="space-y-2">
-          <Link href={`/blog/${post.slug}`} className="block focus:outline-none group-hover:text-amber-800 transition-colors">
-            <h3 className="text-xl font-serif font-light tracking-wide text-stone-900 leading-tight">
+          {/* 🚀 ফিক্স: সম্পূর্ণ টাইটেল লিঙ্কিং পাথ ঠিক করা হলো */}
+          <Link href={`/blog/${post.slug}`} className="block focus:outline-none text-stone-900 hover:text-amber-800 transition-colors">
+            <h3 className="text-xl font-serif font-light tracking-wide leading-tight">
               {post.title}
             </h3>
           </Link>
@@ -92,14 +93,13 @@ export const BlogCard: React.FC<{ post: BlogPostData; index: number }> = ({ post
   );
 };
 
-// ─── 3. BlogList Component (Landing Preview or Main Grid Router) ───
+// ─── 3. BlogList Component ───
 export const BlogList: React.FC<BlogListProps> = ({
   posts,
   sectionTitle = "Atelier Chronicles",
   sectionSubtitle = "Space, Object & Architecture Notes",
   isLandingPreview = false,
 }) => {
-  // ল্যান্ডিং পেজে শুধুমাত্র প্রথম ৩টি আর্ট প্রিভিউ লক করার লজিক
   const displayedPosts = isLandingPreview ? posts.slice(0, 3) : posts;
 
   return (
@@ -126,7 +126,7 @@ export const BlogList: React.FC<BlogListProps> = ({
           )}
         </div>
 
-        {/* 100% Responsive Grid Config Mapping */}
+        {/* Grid Setup */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
           {displayedPosts.map((post, idx) => (
             <BlogCard key={post.slug} post={post} index={idx} />
@@ -138,11 +138,10 @@ export const BlogList: React.FC<BlogListProps> = ({
   );
 };
 
-// ─── 4. BlogPost Component (/blog/[slug] Dedicated Article Reader) ───
+// ─── 4. BlogPost Component (/blog/[slug]) ───
 export const BlogPost: React.FC<BlogPostLayoutProps> = ({ post, relatedPosts = [] }) => {
   return (
     <article className="w-full bg-stone-50 pt-28 pb-20 font-serif overflow-hidden">
-      {/* ── A. Article Structural Banner Header ── */}
       <header className="max-w-4xl mx-auto px-4 text-center space-y-6 mb-12 md:mb-16">
         <div className="flex items-center justify-center space-x-3">
           {post.tags.map((tag) => (
@@ -167,7 +166,6 @@ export const BlogPost: React.FC<BlogPostLayoutProps> = ({ post, relatedPosts = [
         </div>
       </header>
 
-      {/* ── B. Main Cinematic Featured Image ── */}
       <div className="max-w-[1920px] mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24 mb-14 md:mb-20">
         <div 
           className="w-full h-[40vh] sm:h-[55vh] lg:h-[65vh] xl:h-[70vh] bg-cover bg-center rounded-sm border border-stone-200 mix-blend-luminosity"
@@ -175,24 +173,14 @@ export const BlogPost: React.FC<BlogPostLayoutProps> = ({ post, relatedPosts = [
         />
       </div>
 
-      {/* ── C. High-Readability Editorial Content Core (Single Column Mobile) ── */}
       <div className="max-w-3xl mx-auto px-4 sm:px-6">
         <div 
           className="font-serif font-light text-base sm:text-lg text-stone-800 leading-[1.85] tracking-wide space-y-6 sm:space-y-8 select-text
             prose prose-stone max-w-none 
             first-letter:text-5xl first-letter:font-light first-letter:text-amber-800 first-letter:float-left first-letter:mr-3 first-letter:font-serif first-letter:mt-1"
-        >
-          {/* যদি থার্ড-পার্টি কন্টেন্ট জেনারেটর থাকে তবে ডেঞ্জারাসলি রিড করবে, অন্যথায় র ডিভ */}
-          {post.content ? (
-            <div dangerouslySetInnerHTML={{ __html: post.content }} />
-          ) : (
-            <p className="italic text-stone-500">
-              {post.excerpt} Continue developing layout details within Markdown/MDX pipelines inside Next.js folder paths.
-            </p>
-          )}
-        </div>
+          dangerouslySetInnerHTML={{ __html: post.content || `<p>${post.excerpt}</p>` }}
+        />
 
-        {/* ── D. Related Articles Grid Footer Integration ── */}
         {relatedPosts.length > 0 && (
           <div className="border-t border-stone-200 pt-16 mt-20">
             <h3 className="text-xl sm:text-2xl font-light tracking-wide text-stone-900 mb-8">

@@ -73,7 +73,7 @@ export default function ProductDetailsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f4f0eb] flex items-center justify-center animate-pulse">
-        <p className="font-serif text-lg text-gray-500">Loading elegance...</p>
+        <p className="font-serif text-2xl tracking-[0.25em] text-amber-700 select-none">ATELIER</p>
       </div>
     );
   }

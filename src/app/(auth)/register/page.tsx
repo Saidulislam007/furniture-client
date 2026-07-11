@@ -35,7 +35,7 @@ export default function RegisterPage() {
     setServerSuccess(null);
 
     try {
-      // ১. MongoDB-তে ইউজার ক্রিয়েট করা হচ্ছে
+      // ১. MongoDB-তে ইউজার ক্রিয়েট করা হচ্ছে
       const response = await authClient.signUp.email({
         email: data.email,
         password: data.password,
@@ -78,19 +78,9 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-stone-50 text-stone-950 flex font-sans pt-20">
-      {/* Left Side: Luxury Editorial Brand Image */}
-      <div className="hidden lg:flex lg:w-1/2 bg-stone-900 relative overflow-hidden items-center justify-center p-12">
-        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=1200')] bg-cover bg-center opacity-30 mix-blend-luminosity transition-transform duration-700 hover:scale-105" />
-        <div className="relative z-10 max-w-md text-stone-100 font-serif">
-          <p className="text-xs uppercase tracking-widest text-amber-500 mb-3">Atelier Custom Spaces</p>
-          <h2 className="text-4xl xl:text-5xl font-light tracking-wide leading-tight mb-6">Details make the design, design makes the space.</h2>
-          <div className="h-[1px] w-20 bg-amber-600 mb-6" />
-          <p className="text-sm font-sans font-light tracking-wide text-stone-400 leading-relaxed">Join our premier membership program for early drop access, architecture consultation, and tiered loyalty rewards.</p>
-        </div>
-      </div>
-
-      {/* Right Side: Fluid Form Box */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-8 md:px-16 lg:px-12 xl:px-24 py-12">
+      
+      {/* 🚀 🟢 Right Side ছিল, এখন Left Side: Fluid Form Box */}
+      <div className="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-8 md:px-16 lg:px-12 xl:px-24 py-12 order-1">
         <motion.div 
           initial={{ opacity: 0, y: 15 }} 
           animate={{ opacity: 1, y: 0 }}
@@ -219,6 +209,18 @@ export default function RegisterPage() {
           </p>
         </motion.div>
       </div>
+
+      {/* 🚀 🟢 Left Side ছিল, এখন Right Side: Luxury Editorial Brand Image */}
+      <div className="hidden lg:flex lg:w-1/2 bg-stone-900 relative overflow-hidden items-center justify-center p-12 order-2">
+        <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=1200')] bg-cover bg-center opacity-30 mix-blend-luminosity transition-transform duration-700 hover:scale-105" />
+        <div className="relative z-10 max-w-md text-stone-100 font-serif">
+          <p className="text-xs uppercase tracking-widest text-amber-500 mb-3">Atelier Custom Spaces</p>
+          <h2 className="text-4xl xl:text-5xl font-light tracking-wide leading-tight mb-6">Details make the design, design makes the space.</h2>
+          <div className="h-[1px] w-20 bg-amber-600 mb-6" />
+          <p className="text-sm font-sans font-light tracking-wide text-stone-400 leading-relaxed">Join our premier membership program for early drop access, architecture consultation, and tiered loyalty rewards.</p>
+        </div>
+      </div>
+
     </div>
   );
 }

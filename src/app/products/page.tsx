@@ -56,26 +56,10 @@ const shopProducts: Product[] = [
 ];
 
 // ==========================================
-// ⏳ 2. Sub-Component: Compact Skeleton Card
-// ==========================================
-const SkeletonCard: React.FC = () => {
-  return (
-    <div className="flex flex-col h-full animate-pulse">
-      <div className="w-full aspect-[4/3.2] bg-gray-200 rounded-[1.5rem] mb-4"></div>
-      <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
-      <div className="h-3 bg-gray-200 rounded w-full mb-1"></div>
-      <div className="h-3 bg-gray-200 rounded w-4/5 mb-3"></div>
-      <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
-    </div>
-  );
-};
-
-// ==========================================
-// 📦 3. Sub-Component: Compact Product Card
+// 📦 2. Sub-Component: Compact Product Card
 // ==========================================
 const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, index }) => {
   return (
-    // 🌟 কার্ড বা অ্যারো আইকনে ক্লিক করলে সরাসরি /products/[id] পেজে রিডাইরেক্ট করবে
     <Link 
       href={`/products/${product.id}`}
       className="group flex flex-col h-full cursor-pointer transition-all duration-700 ease-out"
@@ -106,7 +90,7 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
           </p>
         )}
 
-        {/* Action Button: Circle Arrow Indicator */}
+        {/* Action Button */}
         <div
           className="mt-auto w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-gray-700 transition-all duration-500 group-hover:bg-gray-900 group-hover:border-gray-900 group-hover:text-white"
         >
@@ -127,7 +111,7 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
 };
 
 // ==========================================
-// 🌐 4. Main Component: Shop Page
+// 🌐 3. Main Component: Shop Page
 // ==========================================
 function ShopPage() {
   const [loading, setLoading] = useState<boolean>(true);
@@ -139,9 +123,18 @@ function ShopPage() {
     return () => clearTimeout(timer);
   }, []);
 
+  // 🚀 🟢 ফিক্স: ফুল-স্ক্রিন ডায়নামিক লোডিং স্টেটটি সঠিক মেকানিজমে বডির শুরুতে প্লেস করা হলো
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f4f0eb] flex items-center justify-center animate-pulse">
+        <p className="font-serif text-2xl tracking-[0.25em] text-amber-700 select-none">ATELIER</p>
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#f4f0eb] pt-20 sm:pt-24 overflow-hidden">
-      {/* 🌟 কাস্টম ফেড-ইন-আপ সিএসএস অ্যানিমেশন */}
+      {/* কাস্টম ফেড-ইন-আপ সিএস্যাস অ্যানিমেশন */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes fadeInUp {
           from {
@@ -174,14 +167,8 @@ function ShopPage() {
           </div>
         </div>
 
-        {/* Loading / Grid Render */}
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8 xl:gap-10">
-            {[...Array(3)].map((_, idx) => (
-              <SkeletonCard key={idx} />
-            ))}
-          </div>
-        ) : shopProducts.length === 0 ? (
+        {/* Grid Render */}
+        {shopProducts.length === 0 ? (
           <div className="w-full py-16 text-center bg-transparent border border-dashed border-gray-300 rounded-[1.5rem]">
             <h3 className="text-lg font-serif text-gray-800">No spaces shaped yet</h3>
           </div>
@@ -201,5 +188,5 @@ function ShopPage() {
   );
 }
 
-// 🌟 Runtime Error ফিক্স করার জন্য ফাইল লেভেলে ডিফল্ট এক্সপোর্ট নিশ্চিত করা হলো
+// Runtime Error ফিক্স করার জন্য ফাইল লেভেলে ডিফল্ট এক্সপোর্ট নিশ্চিত করা হলো
 export default ShopPage;
