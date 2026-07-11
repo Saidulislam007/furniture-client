@@ -2,9 +2,12 @@
 
 import { useState, useEffect } from "react";
 import HeroSection from "@/components/sections/HeroSection";
+import CategoryGrid from "@/components/sections/CategorySection"; // 🚀 কাস্টম এডিটোনিয়াল ক্যাটাগরি সেকশন
 import { ProductSection, Product } from "@/components/ProductSection";
+import NewsletterSection from "@/components/sections/NewsletterSection";
+import StatsSection from "@/components/sections/StatsSection";
 
-// 📝 নতুন লাক্সারি ইন্টেরিয়র/ফার্নিচার থিমের সাথে মিল রেখে ডেমো ডেটা
+// 📝 নতুন লাক্সারি ইন্টেরিয়র/ফার্নিচার থিমের সাথে মিল রেখে ডেমো প্রোডাক্ট ডেটা
 const dummyProducts: Product[] = [
   {
     id: "1",
@@ -26,10 +29,32 @@ const dummyProducts: Product[] = [
   }
 ];
 
+// 📝 ইমেজের থিমের সাথে মিল রেখে ৩টি কাস্টম অ্যাসাইমেট্রিক ক্যাটাগরি ডেটা
+const editorialCategories = [
+  { 
+    title: "Living Room Architecture", 
+    slug: "living-room", 
+    count: 24, 
+    imageUrl: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=800" // বামের বড় ইমেজ
+  },
+  { 
+    title: "Minimalist Workspace", 
+    slug: "workspace", 
+    count: 14, 
+    imageUrl: "https://images.unsplash.com/photo-1524758631624-e2822e304c36?q=80&w=800" // ডানের ওপরে
+  },
+  { 
+    title: "Outdoor Living", 
+    slug: "outdoor", 
+    count: 9, 
+    imageUrl: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800" // ডানের নিচে
+  }
+];
+
 export default function HomePage() {
   const [loading, setLoading] = useState<boolean>(true);
 
-  // ⏳ ইউজার এক্সপেরিয়েন্স এবং স্কেলেটন স্ক্রিন টেস্ট করার জন্য ২ সেকেন্ডের কৃত্রিম লোডিং টাইমার
+  // ⏳ ইউজার এক্সপেরিয়েন্স এবং স্কেলেটন স্ক্রিন টেস্ট করার জন্য ২ সেকেন্ডের কৃত্রিম লোডিং টাইমার
   useEffect(() => {
     const timer = setTimeout(() => setLoading(false), 2000);
     return () => clearTimeout(timer);
@@ -38,21 +63,22 @@ export default function HomePage() {
   // 🛒 অ্যাকশন বাটন (Circle Arrow) ক্লিক হ্যান্ডলার
   const handleAction = (product: Product) => {
     console.log("Action triggered for product:", product.title);
-    // এখানে পরবর্তীতে তোমার নিজস্ব লজিক অ্যাড করতে পারবে
   };
 
-  // 🔍 কার্ড ক্লিক হ্যান্ডলার (ডিটেইলস পেজে যাওয়ার জন্য)
+  // 🔍 カードクリックハンドラー (ডিটেইলস পেজে যাওয়ার জন্য)
   const handleViewDetails = (id: string) => {
     console.log("Navigate to details page for product ID:", id);
   };
 
   return (
     <>
-      {/* 🚀 হিরো সেকশন */}
+      {/* 🚀 ১. হিরো সেকশন */}
       <HeroSection />
+
+      {/* 📂 ২. কাস্টম এডিটোনিয়াল ক্যাটাগরি গ্রিড (আপলোড করা ইমেজের মতো লেআউট) */}
       
-      {/* 🛍️ ওয়ান-ফাইল প্রিমিয়াম প্রোডাক্ট সেকশন */}
-      {/* এটি স্বয়ংক্রিয়ভাবে ৩২০ পিক্সেল থেকে ১৯২০ পিক্সেল পর্যন্ত ৩-কলাম লেআউট ও অফ-হোয়াইট ব্যাকগ্রাউন্ড হ্যান্ডেল করবে */}
+      
+     
       <ProductSection
         title="Shaping Elegant Spaces"
         subtitle="Our mission is to provide clean, effective, and gentle alternatives to traditional."
@@ -61,10 +87,17 @@ export default function HomePage() {
         onAddToCart={handleAction}
         onViewDetails={handleViewDetails}
       />
-      
+      <StatsSection/>
+       {/* 🛍️ ৩. ওয়ান-ফাইল প্রিমিয়াম প্রোডাক্ট সেকশন */}
+      <CategoryGrid 
+        categories={editorialCategories}
+        sectionTitle="Curated Spaces"
+        sectionSubtitle="Select by Architecture"
+      />
+      <NewsletterSection/>
       {/* হোম পেজের অন্যান্য কন্টেন্ট বা সেকশন */}
-      <div className="max-w-[1920px] mx-auto px-4 py-12">
-        {/* অন্যান্য সেকশন এখানে বসাতে পারো */}
+      <div className="max-w-[1920px] mx-auto px-4">
+        
       </div>
     </>
   );

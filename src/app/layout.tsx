@@ -3,6 +3,7 @@ import { Inter, Playfair_Display } from "next/font/google";
 import "./globals.css";
 // ১. আপনার তৈরি করা Navbar কম্পোনেন্টটি ইম্পোর্ট করুন
 import Navbar from "@/components/layout/Navbar"; 
+import Footer from "@/components/layout/Footer";
 
 // Luxury look এর জন্য Inter (Sans) এবং Playfair Display (Serif) ফন্ট সেটআপ
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -28,6 +29,7 @@ export default function RootLayout({
         <div className="w-full">
           {children}
         </div>
+        <Footer />
       </body>
     </html>
   );
