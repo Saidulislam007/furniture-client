@@ -21,10 +21,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} ${playfair.variable}`}>
       <body className="bg-stone-50 font-sans antialiased">
-        {/* ২. <body> ট্যাগের ঠিক নিচে এবং children এর ওপরে Navbar টি বসিয়ে দিন */}
+        {/* ২. <body> ট্যাগের ঠিক নিচে এবং children এর ওপরে Navbar টি বসিয়ে দিন */}
         <Navbar />
         
-        {/* প্রধান কন্টেন্টকে Navbar-এর নিচে নামানোর জন্য w-full ব্যবহার করা হলো */}
+        {/* 🟢 ফিক্স: হিরো সেকশন এখান থেকে রিমুভ করা হয়েছে যাতে সব পেজে শো না করে */}
         <div className="w-full">
           {children}
         </div>
