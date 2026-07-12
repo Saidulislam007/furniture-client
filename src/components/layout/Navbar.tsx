@@ -74,9 +74,11 @@ export default function Navbar() {
 
   // 5 routes minimum (logged in) - Better-Auth lowercase রুল অনুযায়ী ম্যাচিং
   const getLoggedInRoutes = (role?: string) => [
-    { name: 'Shop', path: '/products' },
-    { name: 'Collections', path: '/categories' },
-    { name: 'Orders', path: '/dashboard/orders' },
+    { name: 'Home', path: '/' },         // 🚀 হোম রাউট যুক্ত করা হলো
+  { name: 'Shop', path: '/products' },
+  { name: 'About', path: '/about' },
+  { name: 'Contact', path: '/contact' },
+  { name: 'Blog', path: '/blog' },
     ...(role === 'admin' || role === 'manager' ? [{ name: 'Inventory', path: '/dashboard/products' }] : []),
     { name: 'Dashboard', path: `/dashboard/${role || 'user'}` },
   ];
@@ -132,29 +134,32 @@ export default function Navbar() {
         {/* ACTIONS: Right */}
         <div className="flex items-center space-x-3 sm:space-x-6">
           {/* Cart Icon Badge */}
-          <Link 
-            href="/cart" 
-            className={`relative p-2 focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors duration-300 ${
-              isCartActive 
-                ? 'text-amber-600 font-semibold' 
-                : 'hover:text-amber-700 text-inherit'
-            }`}
-            aria-label="Shopping Cart"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
-            </svg>
-            
-            {cartItemsCount > 0 && (
-              <motion.span
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-sans font-bold leading-none text-white bg-amber-700 rounded-full transform translate-x-1/3 -translate-y-1/3"
-              >
-                {cartItemsCount}
-              </motion.span>
-            )}
-          </Link>
+          {/* 🚀 ফিক্স: শুধুমাত্র সাধারণ ইউজার বা কাস্টমারদের জন্য কার্ট দেখাবে; অ্যাডমিন বা ম্যানেজারের জন্য হাইড থাকবে */}
+{session && session.role !== 'admin' && session.role !== 'manager' && (
+  <Link 
+    href="/cart" 
+    className={`relative p-2 focus:outline-none min-h-[44px] min-w-[44px] flex items-center justify-center transition-colors duration-300 ${
+      isCartActive 
+        ? 'text-amber-600 font-semibold' 
+        : 'hover:text-amber-700 text-inherit'
+    }`}
+    aria-label="Shopping Cart"
+  >
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-6 h-6">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 10.5V6a3.75 3.75 0 1 0-7.5 0v4.5m11.356-1.993 1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 0 1-1.12-1.243l1.264-12A1.125 1.125 0 0 1 5.513 7.5h12.974c.576 0 1.059.435 1.119 1.007ZM8.625 10.5a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Zm7.5 0a.375.375 0 1 1-.75 0 .375.375 0 0 1 .75 0Z" />
+    </svg>
+    
+    {cartItemsCount > 0 && (
+      <motion.span
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-sans font-bold leading-none text-white bg-amber-700 rounded-full transform translate-x-1/3 -translate-y-1/3"
+      >
+        {cartItemsCount}
+      </motion.span>
+    )}
+  </Link>
+)}
 
           {/* Account Menu Component */}
           <div className="hidden md:block">
