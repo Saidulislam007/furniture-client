@@ -2,22 +2,44 @@
 
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Boxes, AlertCircle, Edit3, Trash2, Eye, EyeOff, ShieldAlert, CheckCircle2 } from 'lucide-react';
+import { Boxes, AlertCircle, Edit3, Trash2, Eye, EyeOff, CheckCircle2 } from 'lucide-react';
 
 // ইনভেন্টরি আইটেম ইন্টারফেস টাইপ
 interface InventoryItem {
   sku: string;
   name: string;
-  location: string;
+  image: string;
+  price?: number; // Optional করে দেওয়া হলো যেন undefined থাকলেও ক্রাশ না করে
   stock: number;
   status: 'Pending Approval' | 'Published' | 'Unpublished';
 }
 
 // আপগ্রেডেড ডামি ইনভেন্টরি ডাটাবেজ
 const initialInventory: InventoryItem[] = [
-  { sku: "ATL-TRV-01", name: "Travertine Coffee Table", stock: 12, location: "Warehouse Alpha", status: "Published" },
-  { sku: "ATL-LNG-44", name: "Minimalist Lounge Chair", stock: 2, location: "Warehouse Beta", status: "Pending Approval" },
-  { sku: "ATL-ARC-09", name: "Sleek Arc Pendant Light", stock: 0, location: "Warehouse Alpha", status: "Unpublished" }
+  { 
+    sku: "ATL-TRV-01", 
+    name: "Travertine Coffee Table", 
+    image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=150", 
+    price: 890.00, 
+    stock: 12, 
+    status: "Published" 
+  },
+  { 
+    sku: "ATL-LNG-44", 
+    name: "Minimalist Lounge Chair", 
+    image: "https://images.unsplash.com/photo-1592078615290-033ee584e267?q=80&w=150", 
+    price: 1250.00, 
+    stock: 2, 
+    status: "Pending Approval" 
+  },
+  { 
+    sku: "ATL-ARC-09", 
+    name: "Sleek Arc Pendant Light", 
+    image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?q=80&w=150", 
+    price: 410.00, 
+    stock: 0, 
+    status: "Unpublished" 
+  }
 ];
 
 export default function InventoryLedgerPage() {
@@ -29,7 +51,6 @@ export default function InventoryLedgerPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
-  // পাবলিশিং টগল হ্যান্ডলার (পাবলিশিং পাওয়ার রেস্ট্রিকশন সহ)
   const togglePublishStatus = (sku: string) => {
     setInventory(prev =>
       prev.map(item => {
@@ -47,13 +68,11 @@ export default function InventoryLedgerPage() {
     );
   };
 
-  // ডিলিট হ্যান্ডলার
   const handleDeleteProduct = (sku: string) => {
     setInventory(prev => prev.filter(item => item.sku !== sku));
     triggerToast("Asset ledger record purged permanently.");
   };
 
-  // স্ট্যাটাস ভিত্তিক ব্যাজ কালার কনফিগারেশন
   const getStatusStyle = (status: InventoryItem['status']) => {
     switch (status) {
       case 'Published': return 'bg-stone-900 text-stone-50 border-stone-950';
@@ -89,39 +108,51 @@ export default function InventoryLedgerPage() {
           <table className="w-full text-left text-xs sm:text-sm border-collapse">
             <thead>
               <tr className="bg-stone-50 border-b border-stone-200 text-[10px] font-semibold text-stone-400 uppercase tracking-widest">
+                <th className="p-4 sm:p-5">Image</th>
                 <th className="p-4 sm:p-5">Blueprint Specs (SKU)</th>
                 <th className="p-4 sm:p-5">Asset Title</th>
-                <th className="p-4 sm:p-5">Localization Node</th>
                 <th className="p-4 sm:p-5">Clearance State</th>
-                <th className="p-4 sm:p-5 text-right">Available Volume</th>
+                <th className="p-4 sm:p-5 text-right">Valuation (Price)</th>
                 <th className="p-4 sm:p-5 text-center">Control Pipeline</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-stone-100 text-stone-800">
               {inventory.map((item) => (
                 <tr key={item.sku} className="hover:bg-stone-50/30 transition-colors">
+                  
+                  
+                  <td className="p-4 sm:p-5">
+                    <div className="w-12 h-12 bg-stone-50 border border-stone-100 rounded-sm overflow-hidden shrink-0">
+                      <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                    </div>
+                  </td>
                   <td className="p-4 sm:p-5 font-mono text-stone-500 tracking-wide">{item.sku}</td>
-                  <td className="p-4 sm:p-5 font-serif text-stone-950 text-sm font-light">{item.name}</td>
-                  <td className="p-4 sm:p-5 text-stone-500 font-light">{item.location}</td>
+                  <td className="p-4 sm:p-5 font-serif text-stone-950 text-sm font-light">
+                    <div>{item.name}</div>
+                    <div className="text-[10px] font-mono mt-0.5">
+                      {item.stock > 0 ? (
+                        <span className="text-stone-400">{item.stock} units available</span>
+                      ) : (
+                        <span className="text-red-500 font-medium flex items-center gap-0.5">
+                          <AlertCircle className="w-3 h-3" /> Out of Stock
+                        </span>
+                      )}
+                    </div>
+                  </td>
+                  
                   <td className="p-4 sm:p-5">
                     <span className={`inline-block px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider border rounded-sm ${getStatusStyle(item.status)}`}>
                       {item.status}
                     </span>
                   </td>
-                  <td className="p-4 sm:p-5 text-right font-mono">
-                    {item.stock > 0 ? (
-                      <span className="text-stone-950 font-medium">{item.stock} units</span>
-                    ) : (
-                      <span className="text-red-600 font-medium inline-flex items-center gap-1">
-                        <AlertCircle className="w-3.5 h-3.5" /> Out of Stock
-                      </span>
-                    )}
+
+                  {/* 🚀 🟢 ফিক্স ১: ?? 0 প্রোটেকশন যোগ করা হয়েছে যা ক্রাশ হওয়া আটকাবে */}
+                  <td className="p-4 sm:p-5 text-right font-mono font-medium text-stone-950">
+                    ${(item.price ?? 0).toFixed(2)}
                   </td>
                   
-                  {/* Action Columns Block */}
                   <td className="p-4 sm:p-5 text-center">
                     <div className="flex items-center justify-center gap-2">
-                      {/* Toggle Visibility (Publishing Power) */}
                       <button
                         disabled={item.status === 'Pending Approval'}
                         onClick={() => togglePublishStatus(item.sku)}
@@ -135,7 +166,6 @@ export default function InventoryLedgerPage() {
                         {item.status === 'Published' ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                       </button>
 
-                      {/* Edit Spec */}
                       <button
                         className="p-1.5 text-stone-500 hover:text-stone-900 border border-transparent hover:border-stone-200 rounded-sm transition-all"
                         title="Modify Specifications"
@@ -143,7 +173,6 @@ export default function InventoryLedgerPage() {
                         <Edit3 className="w-3.5 h-3.5" />
                       </button>
 
-                      {/* Delete Spec */}
                       <button
                         onClick={() => handleDeleteProduct(item.sku)}
                         className="p-1.5 text-stone-400 hover:text-red-700 border border-transparent hover:border-red-100 rounded-sm transition-all"
@@ -159,17 +188,25 @@ export default function InventoryLedgerPage() {
           </table>
         </div>
 
-        {/* 📱 MOBILE CARDS ENGINE (100% Responsive adaptive nodes) */}
+        {/* 📱 MOBILE CARDS ENGINE (100% Responsive Adaptive Layout) */}
         <div className="block md:hidden space-y-4">
           {inventory.map((item) => (
             <div key={item.sku} className="bg-white border border-stone-200/60 p-5 rounded-sm shadow-xs space-y-4">
-              <div className="flex justify-between items-start gap-4">
-                <div className="space-y-1">
-                  <span className="text-[9px] font-mono tracking-widest text-stone-400 uppercase">{item.sku}</span>
-                  <h4 className="font-serif text-base text-stone-900 font-light">{item.name}</h4>
-                  <p className="text-xs text-stone-500 font-light">{item.location}</p>
+              <div className="flex justify-between items-start gap-3">
+                <div className="flex gap-3">
+                  <div className="w-12 h-12 bg-stone-50 border border-stone-100 rounded-sm overflow-hidden shrink-0">
+                    <img src={item.image} alt={item.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="space-y-0.5">
+                    <span className="text-[9px] font-mono tracking-widest text-stone-400 uppercase">{item.sku}</span>
+                    <h4 className="font-serif text-base text-stone-900 font-light leading-tight">{item.name}</h4>
+                    {/* 🚀 🟢 ফিক্স ২: মোবাইল ম্যাপেও সেফগার্ড ইমপ্লিমেন্ট করা হলো */}
+                    <span className="block font-mono text-xs font-semibold text-stone-950 mt-1">
+                      ${(item.price ?? 0).toFixed(2)}
+                    </span>
+                  </div>
                 </div>
-                <span className={`inline-block px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider border rounded-sm ${getStatusStyle(item.status)}`}>
+                <span className={`inline-block px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider border rounded-sm ${getStatusStyle(item.status)} shrink-0`}>
                   {item.status}
                 </span>
               </div>
@@ -177,7 +214,7 @@ export default function InventoryLedgerPage() {
               <div className="flex items-center justify-between border-t border-stone-50 pt-3 gap-2">
                 <div className="text-xs font-mono">
                   {item.stock > 0 ? (
-                    <span className="text-stone-950 font-medium">{item.stock} units</span>
+                    <span className="text-stone-400">{item.stock} units</span>
                   ) : (
                     <span className="text-red-600 font-medium inline-flex items-center gap-1">
                       <AlertCircle className="w-3.5 h-3.5" /> Stockout
@@ -185,7 +222,6 @@ export default function InventoryLedgerPage() {
                   )}
                 </div>
 
-                {/* Mobile System Controls */}
                 <div className="flex gap-1.5">
                   <button
                     disabled={item.status === 'Pending Approval'}
