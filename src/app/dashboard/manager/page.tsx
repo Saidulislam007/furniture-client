@@ -32,7 +32,7 @@ export default function ManagerAnalyticsDashboard() {
         {/* ─── HEADER METADATA PANEL ─── */}
         <div className="border-b border-stone-200/60 pb-5">
           <h3 className="font-serif text-xl sm:text-2xl font-light tracking-wide text-stone-950">Performance Overview</h3>
-          <p className="text-[11px] sm:text-xs text-stone-400 mt-1">Real-time analytical metrics, revenue charts, and high-demand catalog nodes.</p>
+          <p className="text-[11px] sm:text-xs text-stone-950 mt-1">Real-time analytical metrics, revenue charts, and high-demand catalog nodes.</p>
         </div>
 
         {/* ─── 📊 QUICK METRICS ROW GRID ─── */}

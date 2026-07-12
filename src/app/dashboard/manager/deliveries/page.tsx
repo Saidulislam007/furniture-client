@@ -2,9 +2,9 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Truck, MapPin, Calendar, User, ChevronDown } from 'lucide-react';
+import { Truck, Calendar, ChevronDown } from 'lucide-react';
 
-// ডেলিভারি ইন্টারফেস টাইপ (ইমেজ এবং প্রাইস যুক্ত করা হলো)
+// ডেলিভারি ইন্টারফেস টাইপ (ইমেজ, প্রাইস এবং ডেলিভারি ফি যুক্ত করা হলো)
 interface Delivery {
   id: string;
   orderId: string;
@@ -12,12 +12,13 @@ interface Delivery {
   item: string;
   image: string;
   price: number;
+  deliveryFee?: number; // 🚀 🟢 ডেলিভারি ফি টাইপ এড করা হলো
   date: string;
   destination: string;
   status: 'Pending' | 'Dispatched' | 'Delivered';
 }
 
-// আপডেট হওয়া ডামি ডেলিভারি ডাটাবেজ
+// আপডেট হওয়া ডামি ডেলিভারি ডাটাবেজ উইথ ডেলিভারি ফি ভ্যালু
 const initialDeliveries: Delivery[] = [
   { 
     id: "DLV-091", 
@@ -26,6 +27,7 @@ const initialDeliveries: Delivery[] = [
     item: "Minimalist Lounge Chair", 
     image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=150",
     price: 1250.00,
+    deliveryFee: 65.00, // ⚡
     date: "July 08, 2026",
     destination: "Manhattan, NY", 
     status: "Pending" 
@@ -37,6 +39,7 @@ const initialDeliveries: Delivery[] = [
     item: "Contemporary Ceramic Vase", 
     image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?q=80&w=150",
     price: 170.00,
+    deliveryFee: 20.00, // ⚡
     date: "June 24, 2026",
     destination: "Los Angeles, CA", 
     status: "Dispatched" 
@@ -69,9 +72,9 @@ export default function DeliveriesTrackerPage() {
         {/* Header Metadata */}
         <div className="border-b border-stone-200/60 pb-5">
           <h3 className="font-serif text-2xl font-light tracking-wide text-stone-950 flex items-center gap-2">
-            <Truck className="w-6 h-6 text-stone-400 stroke-1" /> Deliveries Control Center
+            <Truck className="w-6 h-6 text-stone-950 stroke-1" /> Deliveries Control Center
           </h3>
-          <p className="text-xs text-stone-400 mt-1">Monitor active logistics paths and update transmission operational states.</p>
+          <p className="text-xs text-stone-950 mt-1">Monitor active logistics paths and update transmission operational states.</p>
         </div>
 
         {/* 🖥️ DESKTOP & TABLET INTERFACE (Data Table) */}
@@ -79,13 +82,13 @@ export default function DeliveriesTrackerPage() {
           <table className="w-full border-collapse text-left text-xs sm:text-sm">
             <thead>
               <tr className="border-b border-stone-200 bg-stone-50 text-[10px] uppercase tracking-widest text-stone-400 font-semibold">
-                {/* 🚀 🟢 হেডার মডিফিকেশন: ইমেজ এবং কাস্টমার এক্সেস ফিল্ড */}
                 <th className="p-4 sm:p-5">Image</th>
-                <th className="p-4 sm:p-5">Client & Destination</th>
+                {/* 🚀 🟢 কলাম হেডার পরিবর্তন: Client & Destination থেকে Delivery Fee করা হলো */}
+                
                 <th className="p-4 sm:p-5">Asset Title</th>
                 <th className="p-4 sm:p-5">Manifest Date</th>
-                {/* 🚀 🟢 পরিবর্তন ১: নতুন প্রাইস কলাম যুক্ত করা হলো */}
                 <th className="p-4 sm:p-5 text-right">Price</th>
+                <th className="p-4 sm:p-5">Delivery Fee</th>
                 <th className="p-4 sm:p-5">Logistics Status</th>
                 <th className="p-4 sm:p-5 text-center">Set Pipeline</th>
               </tr>
@@ -94,24 +97,15 @@ export default function DeliveriesTrackerPage() {
               {deliveries.map((delivery) => (
                 <tr key={delivery.id} className="hover:bg-stone-50/40 transition-colors">
                   
-                  {/* 🚀 🟢 ডাইনামিক প্রোডাক্ট ইমেজ থাম্বনেইল নোড */}
+                  {/* প্রোডাক্ট ইমেজ থাম্বনেইল */}
                   <td className="p-4 sm:p-5">
                     <div className="w-12 h-12 bg-stone-50 border border-stone-100 rounded-sm overflow-hidden shrink-0">
                       <img src={delivery.image} alt={delivery.item} className="w-full h-full object-cover" />
                     </div>
                   </td>
 
-                  {/* Client Metadata Column */}
-                  <td className="p-4 sm:p-5">
-                    <div className="space-y-0.5">
-                      <div className="font-medium text-stone-950 flex items-center gap-1.5">
-                        <User className="w-3.5 h-3.5 text-stone-400" /> {delivery.clientName}
-                      </div>
-                      <div className="text-[11px] text-stone-400 flex items-center gap-1">
-                        <MapPin className="w-3 h-3" /> {delivery.destination}
-                      </div>
-                    </div>
-                  </td>
+                  {/* 🚀 🟢 রো ডাটা পরিবর্তন: ডলার কারেন্সিতে ডেলিভারি ফি রেন্ডার হবে */}
+                  
                   
                   {/* Asset Item Title */}
                   <td className="p-4 sm:p-5 font-serif text-stone-900 font-light text-sm">
@@ -126,11 +120,13 @@ export default function DeliveriesTrackerPage() {
                     </div>
                   </td>
 
-                  {/* 🚀 🟢 ডাইনামিক কারেন্সি প্রাইস রেন্ডার কলাম */}
+                  {/* কারেন্সি প্রাইস কলাম */}
                   <td className="p-4 sm:p-5 text-right font-mono font-medium text-stone-950">
                     ${(delivery.price ?? 0).toFixed(2)}
                   </td>
-
+                  <td className="p-4 sm:p-5 font-mono text-stone-600 tracking-wide">
+                    ${(delivery.deliveryFee ?? 0).toFixed(2)}
+                  </td>
                   {/* Status Badge */}
                   <td className="p-4 sm:p-5">
                     <span className={`inline-block px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider border rounded-sm ${getStatusColor(delivery.status)}`}>
@@ -138,7 +134,7 @@ export default function DeliveriesTrackerPage() {
                     </span>
                   </td>
 
-                  {/* Live Interactive Action Selector */}
+                  {/* Action Selector */}
                   <td className="p-4 sm:p-5 text-center">
                     <div className="relative inline-block text-left">
                       <select
@@ -159,28 +155,26 @@ export default function DeliveriesTrackerPage() {
           </table>
         </div>
 
-        {/* 📱 MOBILE INTERFACE (Adaptive 100% Responsive Blueprint Cards) */}
+        {/* 📱 MOBILE INTERFACE (Adaptive Layout) */}
         <div className="block md:hidden space-y-4">
           {deliveries.map((delivery) => (
             <div key={delivery.id} className="bg-white border border-stone-200/60 p-5 rounded-sm shadow-xs space-y-4">
               <div className="flex justify-between items-start gap-2">
                 <div className="flex gap-3">
-                  {/* মোবাইল ইমেজ রেন্ডার */}
                   <div className="w-12 h-12 bg-stone-50 border border-stone-100 rounded-sm overflow-hidden shrink-0">
                     <img src={delivery.image} alt={delivery.item} className="w-full h-full object-cover" />
                   </div>
-                  <div>
-                    <span className="text-[9px] font-mono tracking-widest text-stone-400 uppercase">{delivery.id}</span>
-                    <h4 className="font-serif text-base text-stone-900 font-light leading-tight">{delivery.item}</h4>
-                    <span className="block font-mono text-xs font-semibold text-stone-950 mt-1">${(delivery.price ?? 0).toFixed(2)}</span>
+                  <div className="space-y-0.5">
                     
-                    <p className="text-xs text-stone-500 mt-3 flex items-center gap-1.5">
-                      <User className="w-3.5 h-3.5 text-stone-400" /> {delivery.clientName}
-                    </p>
-                    <p className="text-xs text-stone-400 mt-1 flex items-center gap-1.5">
-                      <MapPin className="w-3.5 h-3.5 text-stone-300" /> {delivery.destination}
-                    </p>
-                    <p className="text-[11px] text-stone-400 font-mono mt-1 flex items-center gap-1.5">
+                    <h4 className="font-serif text-base text-stone-900 font-light leading-tight">{delivery.item}</h4>
+                    
+                    {/* 🚀 🟢 মোবাইল লেআউটেও প্রাইসের পাশাপাশি ডেলিভারি ফি ম্যাপ করা হলো */}
+                    <div className="text-[11px] font-mono mt-2 space-y-0.5">
+                      <span className="block font-semibold text-stone-950">Price: ${(delivery.price ?? 0).toFixed(2)}</span>
+                      <span className="block text-stone-500">Delivery Fee: ${(delivery.deliveryFee ?? 0).toFixed(2)}</span>
+                    </div>
+
+                    <p className="text-[11px] text-stone-400 font-mono mt-3 flex items-center gap-1.5">
                       <Calendar className="w-3.5 h-3.5 text-stone-300" /> {delivery.date}
                     </p>
                   </div>

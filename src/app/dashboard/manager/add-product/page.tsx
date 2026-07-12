@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { PlusCircle, Image as ImageIcon, Save, Palette, Trash2, Loader2 } from 'lucide-react';
-// 🚀 🟢 সার্ভিস ফাংশনটি ইম্পোর্ট করা হলো
+// 🚀 🟢 AnimatePresence ইম্পোর্ট করা হলো
+import { motion, AnimatePresence } from 'framer-motion';
+import { PlusCircle, Image as ImageIcon, Save, Palette, Trash2, Loader2, CheckCircle2 } from 'lucide-react';
 import { sendFurnitureToBackend } from '@/services/furniture';
+import { authClient } from "@/lib/auth-client";
 
 interface ColorOption {
   name: string;
@@ -12,14 +13,26 @@ interface ColorOption {
 }
 
 export default function AddProductNodePage() {
+  const { data: session } = authClient.useSession();
+
   const [colors, setColors] = useState<ColorOption[]>([]);
   const [colorName, setColorName] = useState('');
   const [colorHex, setColorHex] = useState('#374151');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
+  // 🚀 🟢 টোস্ট নোটিফিকেশন স্টেট ও হ্যান্ডলার নোড
+  const [toastMessage, setToastMessage] = useState<string | null>(null);
 
-  const handleAddColor = () => {
+  const triggerToast = (msg: string) => {
+    setToastMessage(msg);
+    setTimeout(() => setToastMessage(null), 3000); // ৩ সেকেন্ড পর হাইড হবে
+  };
+
+  const handleAddColor = (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault(); 
+    e.stopPropagation();
     if (!colorName.trim()) return;
-    setColors([...colors, { name: colorName, hex: colorHex }]);
+    setColors((prevColors) => [...prevColors, { name: colorName, hex: colorHex }]);
     setColorName('');
   };
 
@@ -27,21 +40,21 @@ export default function AddProductNodePage() {
     setColors(colors.filter((_, i) => i !== index));
   };
 
-  // 🚀 🟢 ডাইনামিক সাবমিশন লজিক পাইপলাইন
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    const formData = new FormData(e.currentTarget);
+    const formElement = e.currentTarget; 
+    const formData = new FormData(formElement);
     
-    // মঙ্গোডিবি স্কিমা অনুযায়ী অবজেক্ট ম্যাপ
     const payload = {
       title: formData.get('title'),
-      price: formData.get('price'),
-      oldPrice: formData.get('oldPrice') || undefined,
+      price: Number(formData.get('price')),
+      oldPrice: formData.get('oldPrice') ? Number(formData.get('oldPrice')) : undefined,
+      deliveryFee: formData.get('deliveryFee') ? Number(formData.get('deliveryFee')) : 0,
       category: formData.get('category'),
       subCategory: formData.get('subCategory'),
-      stock: formData.get('stock'),
+      stock: Number(formData.get('stock')),
       material: formData.get('material'),
       warranty: formData.get('warranty'),
       description: formData.get('description'),
@@ -51,30 +64,55 @@ export default function AddProductNodePage() {
         height: formData.get('height'),
         depth: formData.get('depth'),
       },
-      colors: colors
+      colors: colors,
+      managerId: session?.user?.id || "anonymous_manager_node",
+      managerEmail: session?.user?.email || "anonymous@atelier.studio"
     };
 
-    // ⚡ সার্ভিস নোড কল করে ডাটাবেজে পাঠানো হচ্ছে
     const success = await sendFurnitureToBackend(payload);
     
     if (success) {
-      setColors([]); // কালার লিস্ট রিসেট
-      e.currentTarget.reset(); // সমস্ত ইনপুট ফিল্ড রিসেট
+      setColors([]); 
+      formElement.reset(); 
+      // 🚀 🟢 এলার্টের পরিবর্তে এখন আপনার কাঙ্ক্ষিত প্রিমিয়াম টোস্ট নোটিফিকেশন শো করবে
+      triggerToast("Asset ledger spec successfully pushed to studio validation pipeline.");
     }
     
     setIsSubmitting(false);
   };
 
   return (
-    <main className="max-w-[1920px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8 md:py-10 w-full font-sans bg-stone-50/40 min-h-screen">
+    <main className="max-w-[1920px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8 md:py-10 w-full font-sans bg-stone-50/40 min-h-screen relative">
+      
+      {/* 🚀 🟢 ফ্লোটিং লাক্সারি টোস্ট নোটিফিকেশন ইঞ্জিন */}
+      <AnimatePresence>
+        {toastMessage && (
+          <motion.div 
+            initial={{ opacity: 0, y: -20, scale: 0.95 }} 
+            animate={{ opacity: 1, y: 0, scale: 1 }} 
+            exit={{ opacity: 0, scale: 0.95 }} 
+            className="fixed top-24 right-4 sm:right-8 z-50 p-4 bg-stone-950 text-white text-xs tracking-wide border-l-2 border-amber-600 rounded-sm shadow-xl flex items-center gap-2 select-none"
+          >
+            <CheckCircle2 className="w-4 h-4 text-amber-500 shrink-0" /> 
+            <span>{toastMessage}</span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 max-w-3xl mx-auto">
         
         <div className="border-b border-stone-200/60 pb-5">
           <h3 className="font-serif text-2xl font-light tracking-wide text-stone-950 flex items-center gap-2">
             <PlusCircle className="w-6 h-6 text-stone-950 stroke-1" /> Register New Asset
           </h3>
-          <p className="text-xs text-stone-400 mt-1">Initialize a new luxury furniture draft specification into the studio catalog nodes.</p>
+          <p className="text-xs text-stone-950 mt-1">Initialize a new luxury furniture draft specification into the studio catalog nodes.</p>
         </div>
+
+        {!session && (
+          <div className="p-3 text-xs text-amber-800 bg-amber-50 border border-amber-200/60 rounded-sm">
+            ⚠️ Warning: Active auth session node not verified. Form payload will fallback to anonymous metadata.
+          </div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-5 text-xs sm:text-sm bg-white border border-stone-200/60 p-6 rounded-sm shadow-xs">
           
@@ -83,7 +121,7 @@ export default function AddProductNodePage() {
             <input name="title" type="text" placeholder="e.g., Flexform Status Sofa" className="w-full h-11 px-4 text-xs bg-stone-50 border border-stone-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-stone-950" required />
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div className="flex flex-col space-y-1.5">
               <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-500">Current Price (USD)</label>
               <input name="price" type="number" placeholder="1499" className="w-full h-11 px-4 text-xs bg-stone-50 border border-stone-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-stone-950 font-mono" required />
@@ -91,6 +129,10 @@ export default function AddProductNodePage() {
             <div className="flex flex-col space-y-1.5">
               <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-500">Original / Old Price (USD)</label>
               <input name="oldPrice" type="number" placeholder="2500" className="w-full h-11 px-4 text-xs bg-stone-50 border border-stone-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-stone-950 font-mono" />
+            </div>
+            <div className="flex flex-col space-y-1.5">
+              <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-500">Delivery Fee (USD)</label>
+              <input name="deliveryFee" type="number" placeholder="0.00 (Default 0)" className="w-full h-11 px-4 text-xs bg-stone-50 border border-stone-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-stone-950 font-mono" />
             </div>
           </div>
 
@@ -163,13 +205,7 @@ export default function AddProductNodePage() {
             <label className="text-[10px] uppercase tracking-widest font-semibold text-stone-500 flex items-center gap-1">
               <ImageIcon className="w-3.5 h-3.5 text-stone-400" /> Studio Render Image URL
             </label>
-            <input 
-              name="image"
-              type="url" 
-              placeholder="https://images.unsplash.com/photo-... or external image source node" 
-              className="w-full h-11 px-4 text-xs bg-stone-50 border border-stone-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-stone-950 font-mono text-stone-700" 
-              required 
-            />
+            <input name="image" type="url" placeholder="https://images.unsplash.com/photo-..." className="w-full h-11 px-4 text-xs bg-stone-50 border border-stone-200 rounded-sm focus:outline-none focus:ring-1 focus:ring-stone-950 font-mono text-stone-700" required />
           </div>
 
           <button type="submit" disabled={isSubmitting} className="w-full h-12 bg-stone-950 text-white text-xs font-serif uppercase tracking-widest hover:bg-stone-800 transition-colors flex items-center justify-center gap-2 rounded-sm pt-0.5 shadow-xs disabled:bg-stone-400 disabled:cursor-not-allowed">
