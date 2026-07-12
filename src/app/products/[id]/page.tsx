@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 
-// 📑 Product Details-এর জন্য ইন্টারফেস
+// 📑 আপগ্রেডেড Product Details ইন্টারফেস
 interface ProductDetails {
   id: string;
   title: string;
@@ -13,10 +13,21 @@ interface ProductDetails {
   reviewsCount: string;
   image: string;
   description: string;
+  category: string;
+  subCategory: string;
+  stock: number;
+  featured: boolean;
+  material: string;
+  warranty: string;
+  dimensions: {
+    width: string;
+    height: string;
+    depth: string;
+  };
   colors: { name: string; hex: string }[];
 }
 
-// 📝 ডেমো ডেটাবেজ (আইডি ম্যাচ করে সঠিক প্রোডাক্ট দেখানোর জন্য)
+// 📝 ১০০% টাইপ-সেফ রেসপন্সিভ প্রোডাক্টস ডাটাবেজ
 const productsDatabase: Record<string, ProductDetails> = {
   "1": {
     id: "1",
@@ -27,6 +38,17 @@ const productsDatabase: Record<string, ProductDetails> = {
     reviewsCount: "2.6k Reviews",
     image: "https://images.unsplash.com/photo-1581782361327-0402ca001ba9?q=80&w=800",
     description: "The Status Sofa's sleek silhouette is complemented by its impeccable upholstery, available in a range of luxurious fabrics and fine leathers. Its deep, generously padded cushions provide exceptional comfort, while the slim, subtly angled armrests add to its modern aesthetic.",
+    category: "Living Room",
+    subCategory: "Sofas & Couches",
+    stock: 14,
+    featured: true,
+    material: "Italian Leather & Solid Walnut Framework",
+    warranty: "5 Years Framework Warranty",
+    dimensions: {
+      width: "220 cm",
+      height: "85 cm",
+      depth: "95 cm"
+    },
     colors: [
       { name: "Charcoal", hex: "#374151" },
       { name: "Amber", hex: "#ea580c" },
@@ -34,16 +56,30 @@ const productsDatabase: Record<string, ProductDetails> = {
       { name: "Matt Black", hex: "#6b7280" },
     ]
   },
-  // শপ পেজের অন্যান্য আইডিগুলোর ব্যাকআপ ট্র্যাকিং (যাতে ক্র্যাশ না করে)
+  
   "p1": {
     id: "p1",
     title: "Minimalist Lounge Chair",
     price: 899,
+    oldPrice: 1200,
     rating: 4.8,
     reviewsCount: "1.2k Reviews",
     image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?q=80&w=800",
-    description: "Crafted with premium Nordic oak and organic linen for an understated aesthetic.",
-    colors: [{ name: "Oak Grey", hex: "#bcaf9e" }]
+    description: "Crafted with premium Nordic oak and organic linen for an understated aesthetic. Perfect for reading corners or minimalist office arrangements.",
+    category: "Living Room",
+    subCategory: "Lounge Chairs",
+    stock: 8,
+    featured: false,
+    material: "Solid Nordic Oak & Organic Flax Linen",
+    warranty: "3 Years Comprehensive Warranty",
+    dimensions: {
+      width: "82 cm",
+      height: "76 cm",
+      depth: "80 cm"
+    },
+    colors: [
+      { name: "Oak Grey", hex: "#bcaf9e" }
+    ]
   }
 };
 
@@ -57,12 +93,11 @@ export default function ProductDetailsPage() {
   const [selectedColor, setSelectedColor] = useState<string>("");
 
   useEffect(() => {
-    // এপিআই বা ডেটাবেজ ফেচিং সিমুলেশন
     const timer = setTimeout(() => {
-      const foundProduct = productsDatabase[productId] || productsDatabase["1"]; // না পাওয়া গেলে ডিফল্ট ১ নম্বর সোফা দেখাবে
+      const foundProduct = productsDatabase[productId] || productsDatabase["1"];
       setProduct(foundProduct);
       if (foundProduct?.colors?.length) {
-        setSelectedColor(foundProduct.colors[foundProduct.colors.length - 1].name); // ডিফল্ট Matt Black/শেষের কালার সিলেক্টেড থাকবে
+        setSelectedColor(foundProduct.colors[foundProduct.colors.length - 1].name);
       }
       setLoading(false);
     }, 1000);
@@ -110,6 +145,18 @@ export default function ProductDetailsPage() {
           {/* Right: Product Details Info Area */}
           <div className="flex flex-col h-full text-left">
             
+            {/* Category Breadcrumb & Stock Status Tag */}
+            <div className="flex items-center justify-between gap-2 mb-2">
+              <span className="text-[10px] uppercase font-mono tracking-widest text-amber-800 bg-amber-50 px-2.5 py-1 rounded-sm border border-amber-100">
+                {product.category} / {product.subCategory}
+              </span>
+              <span className={`text-[10px] uppercase font-mono tracking-wider px-2 py-1 rounded-sm border ${
+                product.stock > 0 ? "bg-emerald-50 text-emerald-800 border-emerald-100" : "bg-rose-50 text-rose-800 border-rose-100"
+              }`}>
+                {product.stock > 0 ? `In Stock (${product.stock} left)` : "Out of Stock"}
+              </span>
+            </div>
+
             {/* Title */}
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-gray-900 tracking-tight mb-4">
               {product.title}
@@ -148,17 +195,33 @@ export default function ProductDetailsPage() {
             </div>
 
             {/* Description */}
-            <div className="mb-8">
+            <div className="mb-6">
               <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider mb-2">Description</h3>
               <p className="text-sm sm:text-base text-gray-600 font-light leading-relaxed">
-                {product.description} <span className="text-gray-900 font-medium cursor-pointer hover:underline ml-1">See More...</span>
+                {product.description}
               </p>
             </div>
 
+            {/* ─── 🚀 🟢 NEW Spec Sheet Details Badge Section ─── */}
+            <div className="mb-6 p-4 bg-white/60 border border-gray-200/60 rounded-xl space-y-2.5 text-xs text-gray-700">
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="font-medium text-gray-400 uppercase tracking-wider">Material Composition</span>
+                <span className="text-gray-900 font-light">{product.material}</span>
+              </div>
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="font-medium text-gray-400 uppercase tracking-wider">Dimensions (W × H × D)</span>
+                <span className="text-gray-900 font-mono">{product.dimensions.width} × {product.dimensions.height} × {product.dimensions.depth}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="font-medium text-gray-400 uppercase tracking-wider">Warranty Structure</span>
+                <span className="text-gray-900 font-light">{product.warranty}</span>
+              </div>
+            </div>
+
             {/* Color Swatch Picker */}
-            <div className="mb-10">
+            <div className="mb-8">
               <div className="flex items-baseline gap-2 mb-3">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">4 Colors Available</h3>
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{product.colors.length} {product.colors.length > 1 ? "Colors" : "Color"} Available</h3>
                 {selectedColor && <span className="text-xs text-gray-500 font-light">({selectedColor})</span>}
               </div>
               
@@ -184,15 +247,17 @@ export default function ProductDetailsPage() {
             {/* CTA Action Buttons */}
             <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button 
-                onClick={() => console.log("Direct Checkout")}
-                className="w-full bg-[#111827] hover:bg-black text-white text-sm font-medium py-4 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-98"
+                onClick={() => console.log("Direct Checkout for: ", product.id, " with color: ", selectedColor)}
+                disabled={product.stock === 0}
+                className="w-full bg-[#111827] hover:bg-black text-white text-sm font-medium py-4 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-98 disabled:bg-gray-300 disabled:cursor-not-allowed"
               >
                 Buy Now
               </button>
               
               <button 
                 onClick={() => console.log("Added to Cart State")}
-                className="w-full bg-white hover:bg-gray-50 text-gray-900 text-sm font-medium py-4 rounded-xl border border-gray-200 shadow-sm hover:shadow transition-all active:scale-98"
+                disabled={product.stock === 0}
+                className="w-full bg-white hover:bg-gray-50 text-gray-900 text-sm font-medium py-4 rounded-xl border border-gray-200 shadow-sm hover:shadow transition-all active:scale-98 disabled:text-gray-400 disabled:bg-gray-50 disabled:cursor-not-allowed"
               >
                 Add to Cart
               </button>
