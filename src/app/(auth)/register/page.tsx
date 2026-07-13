@@ -5,6 +5,7 @@ import { useForm } from 'react-hook-form';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
+import { Loader2 } from 'lucide-react';
 import { authClient } from '../../../lib/auth-client'; 
 
 interface RegisterInput {
@@ -12,6 +13,7 @@ interface RegisterInput {
   email: string;
   password: string;
   confirmPassword: string;
+  image: string; // 🚀 🟢 বাকি ফিল্ডগুলোর মতো এটিও এখন পিওর স্ট্রিং URL ফিল্ড
 }
 
 export default function RegisterPage() {
@@ -35,25 +37,25 @@ export default function RegisterPage() {
     setServerSuccess(null);
 
     try {
-      // ১. MongoDB-তে ইউজার ক্রিয়েট করা হচ্ছে
+      // ১. Better-Auth এর মাধ্যমে মঙ্গোডিবি-তে ইউজার ক্রিয়েট করা হচ্ছে উইথ ডাইরেক্ট ইমেজ ইউআরএল
       const response = await authClient.signUp.email({
         email: data.email,
         password: data.password,
         name: data.name,
+        image: data.image, // 🚀 সরাসরি ইনপুট থেকে নেওয়া URL পাস হচ্ছে ভাই
       });
 
       if (response?.error) {
         setServerError(response.error.message || 'Registration failed. Please try again.');
         setIsLoading(false);
       } else {
-        // 🚀 ফোর্সড সাইন-আউট: কোনো অবস্থাতেই যেন অটো-লগইন সেশন তৈরি না থাকে
+        // 🚀 ফোর্সড সাইন-আউট
         await authClient.signOut({
-          redirect: false // নেক্সট-জেএস রিডাইরেকশন আমরা ম্যানুয়ালি হ্যান্ডেল করব
+          redirect: false 
         });
 
         setServerSuccess('Account created successfully! Redirecting to login page...');
         
-        // ⏳ ৩ সেকেন্ড পর লগইন পেজে রিডাইরেক্ট হবে
         setTimeout(() => {
           router.push('/login');
         }, 3000);
@@ -79,7 +81,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-screen bg-stone-50 text-stone-950 flex font-sans pt-20">
       
-      {/* 🚀 🟢 Right Side ছিল, এখন Left Side: Fluid Form Box */}
+      {/* Left Side: Fluid Form Box */}
       <div className="w-full lg:w-1/2 flex items-center justify-center px-4 sm:px-8 md:px-16 lg:px-12 xl:px-24 py-12 order-1">
         <motion.div 
           initial={{ opacity: 0, y: 15 }} 
@@ -104,6 +106,8 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            
+            {/* Full Name Field */}
             <div>
               <label htmlFor="name" className="block text-xs uppercase tracking-wider font-semibold text-stone-700 mb-2">Full Name</label>
               <input
@@ -122,6 +126,7 @@ export default function RegisterPage() {
               {errors.name && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.name.message}</p>}
             </div>
 
+            {/* Email Address Field */}
             <div>
               <label htmlFor="email" className="block text-xs uppercase tracking-wider font-semibold text-stone-700 mb-2">Email Address</label>
               <input
@@ -143,6 +148,25 @@ export default function RegisterPage() {
               {errors.email && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.email.message}</p>}
             </div>
 
+            {/* 🚀 🟢 নতুন: একদম সেম-টু-সেম ইমেজ ইউআরএল টেক্সট ইনপুট ফিল্ড */}
+            <div>
+              <label htmlFor="image" className="block text-xs uppercase tracking-wider font-semibold text-stone-700 mb-2">Profile Image URL</label>
+              <input
+                id="image"
+                type="url"
+                disabled={isLoading}
+                {...register('image', { 
+                  required: 'Image URL is required'
+                })}
+                className={`w-full h-11 px-4 text-sm bg-stone-50/50 border rounded focus:outline-none focus:ring-2 focus:ring-amber-700 transition-all ${
+                  errors.image ? 'border-red-500 focus:ring-red-500' : 'border-stone-200'
+                }`}
+                placeholder="https://example.com/avatar.jpg"
+              />
+              {errors.image && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.image.message}</p>}
+            </div>
+
+            {/* Password Field */}
             <div>
               <label htmlFor="password" className="block text-xs uppercase tracking-wider font-semibold text-stone-700 mb-2">Password</label>
               <input
@@ -161,6 +185,7 @@ export default function RegisterPage() {
               {errors.password && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.password.message}</p>}
             </div>
 
+            {/* Confirm Password Field */}
             <div>
               <label htmlFor="confirmPassword" className="block text-xs uppercase tracking-wider font-semibold text-stone-700 mb-2">Confirm Password</label>
               <input
@@ -179,20 +204,30 @@ export default function RegisterPage() {
               {errors.confirmPassword && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.confirmPassword.message}</p>}
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
               className="w-full h-12 bg-stone-950 text-white font-serif tracking-widest text-xs uppercase rounded hover:bg-stone-800 transition-colors focus:outline-none focus:ring-2 focus:ring-amber-700 min-h-[44px] flex items-center justify-center disabled:bg-stone-400 pt-1"
             >
-              {isLoading ? 'Creating Account...' : 'Open Account'}
+              {isLoading ? (
+                <div className="flex items-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-stone-200" />
+                  <span>Creating Account...</span>
+                </div>
+              ) : (
+                'Open Account'
+              )}
             </button>
           </form>
 
+          {/* Divider */}
           <div className="relative my-6 text-center">
             <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-stone-200"></div></div>
             <span className="relative bg-white px-3 text-xs uppercase tracking-wider text-stone-400">Or Continue With</span>
           </div>
 
+          {/* Google Button */}
           <button
             type="button"
             className="w-full h-12 border border-stone-200 text-sm font-medium text-stone-700 rounded flex items-center justify-center gap-3 hover:bg-stone-50 transition-colors min-h-[44px]"
@@ -210,7 +245,7 @@ export default function RegisterPage() {
         </motion.div>
       </div>
 
-      {/* 🚀 🟢 Left Side ছিল, এখন Right Side: Luxury Editorial Brand Image */}
+      {/* Right Side: Luxury Editorial Brand Image */}
       <div className="hidden lg:flex lg:w-1/2 bg-stone-900 relative overflow-hidden items-center justify-center p-12 order-2">
         <div className="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1540518614846-7eded433c457?q=80&w=1200')] bg-cover bg-center opacity-30 mix-blend-luminosity transition-transform duration-700 hover:scale-105" />
         <div className="relative z-10 max-w-md text-stone-100 font-serif">

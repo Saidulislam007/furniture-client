@@ -47,13 +47,17 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
     <div className="min-h-screen bg-[#eadecf] text-stone-900 font-sans flex flex-col md:flex-row relative overflow-x-hidden">
       
       {/* 📱 MOBILE TOP NAVIGATION BAR */}
-      <div className="w-full h-12 bg-white border-b border-stone-200 fixed top-0 left-0 z-40 flex items-center px-4 md:hidden shadow-xs">
+      {/* 🚀 🟢 ফিক্স: top-[73px] বা আপনার গ্লোবাল নেভবারের হাইটের নিচে দেওয়া হলো যাতে ওভ্যারল্যাপ না করে ভাই */}
+      <div className="w-full h-12 bg-white border-b border-stone-200 fixed top-[86px] left-0 z-40 flex items-center justify-between px-4 md:hidden shadow-xs">
         <button 
           onClick={() => setIsSidebarOpen(true)} 
-          className="p-1 text-stone-600 hover:text-stone-900 flex items-center gap-2 text-xs uppercase tracking-wider font-semibold focus:outline-none min-h-[40px]"
+          className="p-1 text-stone-700 hover:text-stone-950 flex items-center gap-2 text-xs uppercase tracking-wider font-sans font-bold focus:outline-none min-h-[40px]"
         >
-          <Menu className="w-4 h-4" /> Account Menu
+          <Menu className="w-4 h-4 text-stone-950" /> Admin Console Menu
         </button>
+        <span className="text-[10px] font-mono bg-red-50 text-red-700 px-2 py-0.5 rounded-xs uppercase font-bold tracking-wider">
+          Admin Mode
+        </span>
       </div>
 
       {/* 📱 MOBILE SIDE DRAWER PANEL */}
@@ -124,11 +128,8 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
       </AnimatePresence>
       
       {/* 🖥️ DESKTOP SIDEBAR CHASSIS */}
-      {/* 🚀 🟢 ফিক্স: pt-24 এবং mt-4 দিয়ে গ্লোবাল নেভিগেশনের নিচ থেকে সেফ ডিসট্যান্স তৈরি করা হয়েছে */}
-      <aside className="hidden md:flex sticky top-0 h-[calc(139vh-80px)] w-64 bg-white border-r border-stone-200/60 z-30 p-6 pt-24 flex-col justify-between shrink-0">
+      <aside className="hidden md:flex sticky top-0 h-[calc(100vh-80px)] w-64 bg-white border-r border-stone-200/60 z-30 p-6 pt-24 flex-col justify-between shrink-0">
         <div className="space-y-8 mt-4">
-          
-          {/* 🚀 🟢 অ্যাডমিন প্রোফাইল কার্ড এখন পরিষ্কার দেখা যাবে */}
           <div className="flex items-center gap-3 border-b border-stone-100 pb-5">
             <img 
               src={currentAdmin.image} 
@@ -168,8 +169,8 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
       </aside>
       
       {/* 🖥️ MAIN WORKSPACE RENDER NODE */}
-      {/* 🚀 🟢 ফিক্স: মেনুগুলোর সমান এলাইনমেন্টের জন্য এখানেও pt-24 যোগ করা হয়েছে */}
-      <div className="flex-1 w-full min-w-0 relative pt-18">{children}</div>
+      {/* 🚀 🟢 ফিক্স: মোবাইল স্ক্রিনে ড্যাশবোর্ড বারটির নিচে স্পেস দেওয়ার জন্য pt-32 করা হলো ভাই */}
+      <div className="flex-1 w-full min-w-0 relative pt-32 md:pt-18">{children}</div>
     </div>
   );
 }
