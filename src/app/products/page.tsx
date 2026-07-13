@@ -9,49 +9,137 @@ import Link from 'next/link';
 export interface Product {
   id: string;
   title: string;
-  price?: number;
-  rating?: number;
+  price: number;
+  oldPrice?: number;
+  rating: number;
+  reviewsCount: string;
   image: string;
-  description?: string;
+  description: string;
+  category: string;
+  subCategory: string;
+  stock: number;
+  featured: boolean;
+  material: string;
+  warranty: string;
+  dimensions: {
+    width: string;
+    height: string;
+    depth: string;
+  };
+  colors: { name: string; hex: string }[];
 }
 
-// 📝 শপ পেজের জন্য লাক্সারি ও প্রিমিয়াম ডেমো প্রোডাক্ট ডেটাবেজ অ্যারে
-const shopProducts: Product[] = [
+// 📝 শপ পেজের জন্য সম্পূর্ণ প্রিমিয়াম প্রোডাক্ট ডেটাবেজ (যা ডিটেইলস পেজের সাথে সিঙ্কড)
+export const shopProducts: Product[] = [
   {
     id: "p1",
     title: "Minimalist Lounge Chair",
-    description: "Crafted with premium Nordic oak and organic linen for an understated aesthetic.",
-    image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?q=80&w=600"
+    price: 899,
+    oldPrice: 1200,
+    rating: 4.8,
+    reviewsCount: "1.2k Reviews",
+    image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?q=80&w=800",
+    description: "Crafted with premium Nordic oak and organic linen for an understated aesthetic. Perfect for reading corners or minimalist office arrangements.",
+    category: "Living Room",
+    subCategory: "Lounge Chairs",
+    stock: 8,
+    featured: false,
+    material: "Solid Nordic Oak & Organic Flax Linen",
+    warranty: "3 Years Comprehensive Warranty",
+    dimensions: { width: "82 cm", height: "76 cm", depth: "80 cm" },
+    colors: [{ name: "Oak Grey", hex: "#bcaf9e" }]
   },
   {
     id: "p2",
     title: "Contemporary Ceramic Vase",
-    description: "Hand-thrown earthenware finish that introduces a subtle texture to modern settings.",
-    image: "https://images.unsplash.com/photo-1578500494198-246f612d3b3d?q=80&w=600"
+    price: 240,
+    rating: 4.5,
+    reviewsCount: "412 Reviews",
+    image: "https://images.unsplash.com/photo-1578500494198-246f612d3b3d?q=80&w=800",
+    description: "Hand-thrown earthenware finish that introduces a subtle texture to modern architectural settings.",
+    category: "Decor",
+    subCategory: "Vases",
+    stock: 25,
+    featured: false,
+    material: "Natural Terracotta Clay",
+    warranty: "No Warranty Structure Available",
+    dimensions: { width: "24 cm", height: "45 cm", depth: "24 cm" },
+    colors: [{ name: "Terracotta", hex: "#c37a5e" }]
   },
   {
     id: "p3",
     title: "Travertine Coffee Table",
-    description: "Sculptural forms marrying structural stability with raw, unfilled Italian stone.",
-    image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=600"
+    price: 1850,
+    oldPrice: 2200,
+    rating: 4.9,
+    reviewsCount: "89 Reviews",
+    image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=800",
+    description: "Sculptural forms marrying structural stability with raw, unfilled imported Italian stone composites.",
+    category: "Living Room",
+    subCategory: "Tables",
+    stock: 3,
+    featured: true,
+    material: "Italian Travertine Solid Stone",
+    warranty: "2 Years Material Warranty",
+    dimensions: { width: "120 cm", height: "40 cm", depth: "80 cm" },
+    colors: [{ name: "Ivory Cream", hex: "#f0e6d2" }]
   },
   {
     id: "p4",
     title: "Sleek Pendant Light",
-    description: "Brushed brass accents throwing gentle illumination over curated dining profiles.",
-    image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?q=80&w=600"
+    price: 340,
+    rating: 4.6,
+    reviewsCount: "1.1k Reviews",
+    image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?q=80&w=800",
+    description: "Brushed brass accents throwing gentle illumination over highly curated dining profiles.",
+    category: "Lighting",
+    subCategory: "Pendant Lights",
+    stock: 19,
+    featured: false,
+    material: "Brushed Brass & Hand-Blown Glass",
+    warranty: "1 Year Electrical Node Warranty",
+    dimensions: { width: "35 cm", height: "110 cm", depth: "35 cm" },
+    colors: [{ name: "Brass Gold", hex: "#d4af37" }]
   },
   {
     id: "p5",
     title: "Monolithic Ash Credenza",
-    description: "Hidden seams and soft-close trackways ensuring functional architectural elegance.",
-    image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=600"
+    price: 2100,
+    rating: 4.8,
+    reviewsCount: "67 Reviews",
+    image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=800",
+    description: "Hidden seams and soft-close trackways ensuring functional architectural elegance and heavy volume storage.",
+    category: "Storage",
+    subCategory: "Cabinets",
+    stock: 5,
+    featured: false,
+    material: "Solid Ash Wood & Steel Anchors",
+    warranty: "5 Years Framework Warranty",
+    dimensions: { width: "180 cm", height: "75 cm", depth: "45 cm" },
+    colors: [{ name: "Natural Ash", hex: "#e2d2be" }]
   },
   {
     id: "p6",
     title: "Organic Bouclé Sofa",
-    description: "Fluid curves designed to create safe zones of comfort within minimal living spaces.",
-    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=600"
+    price: 1499,
+    oldPrice: 2500,
+    rating: 4.7,
+    reviewsCount: "2.6k Reviews",
+    image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800",
+    description: "Fluid curves designed to create safe zones of tactical comfort within ultra-minimalist living spaces.",
+    category: "Living Room",
+    subCategory: "Sofas & Couches",
+    stock: 14,
+    featured: true,
+    material: "Premium Bouclé Weave & Walnut Base",
+    warranty: "5 Years Structural Frame Warranty",
+    dimensions: { width: "220 cm", height: "85 cm", depth: "95 cm" },
+    colors: [
+      { name: "Charcoal", hex: "#374151" },
+      { name: "Amber", hex: "#ea580c" },
+      { name: "Purple", hex: "#7c3aed" },
+      { name: "Matt Black", hex: "#6b7280" },
+    ]
   }
 ];
 
@@ -84,6 +172,10 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
           {product.title}
         </h3>
         
+        {product.price && (
+          <p className="text-sm font-bold text-gray-950 mb-1">${product.price}</p>
+        )}
+
         {product.description && (
           <p className="text-xs text-gray-600 font-light leading-relaxed mb-3 line-clamp-2">
             {product.description}
@@ -123,7 +215,6 @@ function ShopPage() {
     return () => clearTimeout(timer);
   }, []);
 
-  // 🚀 🟢 ফিক্স: ফুল-স্ক্রিন ডায়নামিক লোডিং স্টেটটি সঠিক মেকানিজমে বডির শুরুতে প্লেস করা হলো
   if (loading) {
     return (
       <div className="min-h-screen bg-[#f4f0eb] flex items-center justify-center animate-pulse">
@@ -134,7 +225,6 @@ function ShopPage() {
 
   return (
     <main className="min-h-screen bg-[#f4f0eb] pt-20 sm:pt-24 overflow-hidden">
-      {/* কাস্টম ফেড-ইন-আপ সিএস্যাস অ্যানিমেশন */}
       <style dangerouslySetInnerHTML={{__html: `
         @keyframes fadeInUp {
           from {
@@ -188,5 +278,4 @@ function ShopPage() {
   );
 }
 
-// Runtime Error ফিক্স করার জন্য ফাইল লেভেলে ডিফল্ট এক্সপোর্ট নিশ্চিত করা হলো
 export default ShopPage;

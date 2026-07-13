@@ -192,7 +192,6 @@ export default function AssetClearancePage() {
       </AnimatePresence>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-        
         <div className="border-b border-stone-200/60 pb-5">
           <h3 className="font-serif text-2xl font-light tracking-wide text-stone-950 flex items-center gap-2">
             <Boxes className="w-6 h-6 text-stone-950 stroke-1" /> Asset Clearance Terminal
