@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { InvestmentCard } from '../../../components/dashboard/user/InvestmentCard';
 import { ManifestCard } from '../../../components/dashboard/user/ManifestCard';
 import { WalletCard } from '../../../components/dashboard/user/WalletCard';
-import { OrdersTable, Order } from '../../../components/dashboard/user/OrdersTable';
 
 // 📡 ডামি ডাটাবেজ (এখানে ২টি অর্ডার আছে, তাই টোটাল অর্ডারে ২ দেখাবে)
 const dummyOrders: Order[] = [
@@ -44,11 +43,6 @@ export default function OverviewPage() {
 
         </div>
 
-        {/* Recent Orders Snippet */}
-        <div className="space-y-4">
-          <h3 className="font-serif text-xl font-light tracking-wide text-stone-950">Recent Spaces Manifest</h3>
-          <OrdersTable orders={dummyOrders.slice(0, 3)} />
-        </div>
 
       </motion.div>
     </main>

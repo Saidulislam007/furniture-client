@@ -3,9 +3,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, Loader2, ArrowLeft } from "lucide-react";
+import { CheckCircle2, Loader2, ArrowLeft, Receipt, CreditCard, X, ShoppingBag, Truck } from "lucide-react";
+// Better-Auth ক্লায়েন্ট সেশন হুক ইম্পোর্ট
 import { authClient } from "@/lib/auth-client";
-// 🚀 শপ পেজের এক্সপোর্টেড ডেটাবেজ ইম্পোর্ট করা হলো
+// কার্ট পোস্ট সার্ভিস এপিআই ইম্পোর্ট
+import { sendToCartBackend } from "@/services/api/postCart";
+// 🚀 ডেলিভারি পোস্ট সার্ভিস ইম্পোর্ট
+import { sendToDeliveriesBackend } from "@/services/api/postDelivery";
+// শপ পেজের এক্সপোর্টেড ডেটাবেজ ইম্পোর্ট
 import { shopProducts, Product } from "../page"; 
 
 export default function ProductDetailsPage() {
@@ -21,12 +26,14 @@ export default function ProductDetailsPage() {
 
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isAddingToCart, setIsAddingToCart] = useState<boolean>(false);
+  
+  // পেমেন্ট রিসিট মডাল এবং চেকিং স্টেটস
+  const [showReceipt, setShowReceipt] = useState<boolean>(false);
+  const [isProcessingOrder, setIsProcessingOrder] = useState<boolean>(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      // 🚀 🟢 ফিক্স: শপ পেজের মেইন অ্যারে থেকে আইডি অনুযায়ী প্রোডাক্ট ফিল্টার করা হচ্ছে
       const foundProduct = shopProducts.find((p) => p.id === productId);
-      
       if (foundProduct) {
         setProduct(foundProduct);
         if (foundProduct.colors && foundProduct.colors.length > 0) {
@@ -46,6 +53,7 @@ export default function ProductDetailsPage() {
     setTimeout(() => setToastMessage(null), 3000);
   };
 
+  // 🛒 অ্যাড টু কার্ট পাইপলাইন
   const handleAddToCart = async () => {
     if (!session) {
       triggerToast("Authentication Required: Please log in to commit items to cart.");
@@ -88,6 +96,36 @@ export default function ProductDetailsPage() {
     }
   };
 
+  // 🚀 🟢 বাই নাও পেমেন্ট কনফার্মেশন ও ডেলিভারি কালেকশন পুশ লজিক (ডেলিভারি ফিসহ)
+  const handleConfirmPurchase = async () => {
+    if (!session || !product) return;
+    
+    setIsProcessingOrder(true);
+
+    const deliveryPayload = {
+      userId: session.user.id,
+      userName: session.user.name || "Anonymous User",
+      userEmail: session.user.email,
+      productId: product.id,
+      title: product.title,
+      price: Number(product.price),
+      deliveryFee: Number(product.deliveryFee || 0), // 👈 পেলোডে ডেলিভারি ফি পুশ করা হলো
+      image: product.image,
+      color: selectedColor || "Default",
+    };
+
+    const success = await sendToDeliveriesBackend(deliveryPayload);
+
+    if (success) {
+      setShowReceipt(false);
+      triggerToast("Payment successful! Order logged under PENDING ledger.");
+    } else {
+      triggerToast("Error: Critical failure in deployment pipeline.");
+    }
+
+    setIsProcessingOrder(false);
+  };
+
   if (loading || isAuthPending) {
     return (
       <div className="min-h-screen bg-[#f4f0eb] flex items-center justify-center animate-pulse">
@@ -109,6 +147,8 @@ export default function ProductDetailsPage() {
 
   return (
     <main className="min-h-screen bg-[#f4f0eb] pt-24 pb-16 font-sans relative">
+      
+      {/* 🔔 FLOATING NOTIFICATION TOAST UI */}
       <AnimatePresence>
         {toastMessage && (
           <motion.div initial={{ opacity: 0, y: -20, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} className="fixed top-24 right-4 sm:right-8 z-50 p-4 bg-stone-950 text-white text-xs tracking-wide border-l-2 border-amber-600 rounded-sm shadow-xl flex items-center gap-2 select-none">
@@ -117,7 +157,56 @@ export default function ProductDetailsPage() {
         )}
       </AnimatePresence>
 
+      {/* 🚀 🟢 আপগ্রেড হওয়া লাক্সারি ইনভয়েস রিসিট মডাল প্যানেল */}
+      <AnimatePresence>
+        {showReceipt && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs p-4">
+            <motion.div initial={{ opacity: 0, scale: 0.95, y: 10 }} animate={{ opacity: 1, scale: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95, y: 10 }} className="w-full max-w-md bg-white border border-stone-200 shadow-2xl p-6 rounded-sm flex flex-col space-y-5 text-left">
+              <div className="flex justify-between items-center border-b border-stone-100 pb-3">
+                <h4 className="font-serif text-lg text-stone-950 font-light flex items-center gap-1.5">
+                  <Receipt className="w-4 h-4 text-stone-400" /> Studio Asset Invoice
+                </h4>
+                <button onClick={() => setShowReceipt(false)} className="text-stone-400 hover:text-stone-900 transition-colors"><X className="w-4 h-4" /></button>
+              </div>
+
+              {/* রিসিট বডি ইন্টেল উইথ ম্যাথমেটিকাল টোটালস */}
+              <div className="space-y-4 text-xs font-mono text-stone-600 bg-stone-50 p-4 border border-stone-100 rounded-xs">
+                <div className="flex justify-between"><span className="text-stone-400">Client Node:</span><span className="text-stone-950 font-medium">{session?.user?.name}</span></div>
+                <div className="flex justify-between truncate"><span className="text-stone-400">Registry Email:</span><span className="text-stone-950">{session?.user?.email}</span></div>
+                <div className="border-t border-stone-200/60 my-2 pt-2 flex justify-between"><span className="text-stone-400">Product Manifest:</span><span className="text-stone-950 font-sans font-light truncate max-w-[180px]">{product.title}</span></div>
+                <div className="flex justify-between"><span className="text-stone-400">Spec Configuration:</span><span className="text-amber-700 font-semibold uppercase text-[10px] bg-amber-50 px-1.5 py-0.5 rounded-xs border border-amber-100">{selectedColor || "Default"}</span></div>
+                
+                {/* 🚀 রিসিট বডিতে ডেলিভারি ফি ব্রেকডাউন */}
+                <div className="flex justify-between"><span className="text-stone-400">Base Valuation:</span><span className="text-stone-950">${product.price.toFixed(2)}</span></div>
+                <div className="flex justify-between"><span className="text-stone-400">Logistics Fee:</span><span className="text-stone-950">${(product.deliveryFee || 0).toFixed(2)}</span></div>
+                
+                <div className="flex justify-between"><span className="text-stone-400">Logistics State:</span><span className="text-stone-950 uppercase text-[10px] font-bold">PENDING</span></div>
+                
+                {/* 🚀 ফাইনাল সামেশন টোটাল (Price + Delivery Fee) */}
+                <div className="border-t border-stone-300 mt-3 pt-3 flex justify-between text-sm font-sans">
+                  <span className="font-serif text-stone-950 font-medium">Total Ledger Fee:</span>
+                  <span className="font-mono font-bold text-stone-950">
+                    ${(product.price + (product.deliveryFee || 0)).toFixed(2)}
+                  </span>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-2">
+                <button type="button" onClick={() => setShowReceipt(false)} className="flex-1 h-11 border border-stone-200 text-stone-700 text-xs uppercase tracking-wider rounded-sm hover:bg-stone-50 transition-colors">
+                  Cancel
+                </button>
+                <button onClick={handleConfirmPurchase} disabled={isProcessingOrder} className="flex-1 h-11 bg-stone-950 text-white text-xs uppercase tracking-wider rounded-sm hover:bg-stone-800 transition-colors flex items-center justify-center gap-1.5 disabled:bg-stone-400">
+                  {isProcessingOrder ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-3.5 h-3.5" />}
+                  Confirm Payment
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Back Button */}
         <button onClick={() => router.back()} className="mb-8 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors group">
           <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4 transition-transform group-hover:-translate-x-1">
             <path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" />
@@ -125,6 +214,7 @@ export default function ProductDetailsPage() {
           Back to Catalog
         </button>
 
+        {/* Split responsive layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 items-start">
           <div className="w-full aspect-[4/3.5] md:aspect-[4/4] bg-[#eadecf] rounded-[2rem] overflow-hidden shadow-sm">
             <img src={product.image} alt={product.title} className="w-full h-full object-cover object-center transform hover:scale-102 transition-transform duration-700" />
@@ -155,8 +245,17 @@ export default function ProductDetailsPage() {
               <button className="text-sm text-gray-600 underline font-light hover:text-gray-900">{product.reviewsCount}</button>
             </div>
 
-            <div className="flex items-baseline gap-4 mb-6">
-              <span className="text-3xl sm:text-4xl font-bold text-gray-950">${product.price}</span>
+            {/* 🚀 প্রাইস সেকশনের ঠিক নিচে মিনিমালিস্ট লাইভ ডেলিভারি ফি ডিসপ্লে */}
+            <div className="flex flex-col space-y-1 mb-6">
+              <div className="flex items-baseline gap-4">
+                <span className="text-3xl sm:text-4xl font-bold text-gray-950">${product.price}</span>
+              </div>
+              {product.deliveryFee !== undefined && (
+                <div className="flex items-center gap-1 text-[11px] font-mono text-stone-500 tracking-wide pt-1">
+                  <Truck className="w-3.5 h-3.5 text-stone-400" /> 
+                  Delivery Premium Ledger: <span className="text-stone-950 font-medium">${product.deliveryFee.toFixed(2)}</span>
+                </div>
+              )}
             </div>
 
             <div className="mb-6">
@@ -164,6 +263,7 @@ export default function ProductDetailsPage() {
               <p className="text-sm sm:text-base text-gray-600 font-light leading-relaxed">{product.description}</p>
             </div>
 
+            {/* Specs Sheets */}
             <div className="mb-6 p-4 bg-white/60 border border-gray-200/60 rounded-xl space-y-2.5 text-xs text-gray-700">
               <div className="flex justify-between border-b border-gray-100 pb-2">
                 <span className="font-medium text-gray-400 uppercase tracking-wider">Material Composition</span>
@@ -173,12 +273,20 @@ export default function ProductDetailsPage() {
                 <span className="font-medium text-gray-400 uppercase tracking-wider">Dimensions (W × H × D)</span>
                 <span className="text-gray-900 font-mono">{product.dimensions.width} × {product.dimensions.height} × {product.dimensions.depth}</span>
               </div>
+              
+              {/* 🚀 🟢 নতুন ফিক্স: স্পেক শিট টেবিলের ভেতরেও ডেলিভারি ফি-র আরেকটি প্রাতিষ্ঠানিক রো অ্যাড করা হলো */}
+              <div className="flex justify-between border-b border-gray-100 pb-2">
+                <span className="font-medium text-gray-400 uppercase tracking-wider">Logistics Fee Matrix</span>
+                <span className="text-stone-900 font-mono font-medium">${(product.deliveryFee || 0).toFixed(2)}</span>
+              </div>
+
               <div className="flex justify-between">
                 <span className="font-medium text-gray-400 uppercase tracking-wider">Warranty Structure</span>
                 <span className="text-gray-900 font-light">{product.warranty}</span>
               </div>
             </div>
 
+            {/* Colors Swatches */}
             <div className="mb-8">
               <div className="flex items-baseline gap-2 mb-3">
                 <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{product.colors.length} {product.colors.length > 1 ? "Colors" : "Color"} Available</h3>
@@ -199,9 +307,20 @@ export default function ProductDetailsPage() {
               </div>
             </div>
 
+            {/* CTA Pipeline Actions */}
             <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <button onClick={() => console.log("Direct Checkout executed")} disabled={product.stock === 0} className="w-full bg-[#111827] hover:bg-black text-white text-sm font-medium py-4 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-98 disabled:bg-gray-300 disabled:cursor-not-allowed">
-                Buy Now
+              <button 
+                onClick={() => {
+                  if(!session) {
+                    triggerToast("Authentication Required: Please log in to complete purchase.");
+                  } else {
+                    setShowReceipt(true); 
+                  }
+                }} 
+                disabled={product.stock === 0} 
+                className="w-full bg-[#111827] hover:bg-black text-white text-sm font-medium py-4 rounded-xl shadow-sm hover:shadow-md transition-all active:scale-98 disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-1.5"
+              >
+                <ShoppingBag className="w-4 h-4" /> Buy Now
               </button>
 
               <button

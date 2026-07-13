@@ -11,6 +11,7 @@ export interface Product {
   title: string;
   price: number;
   oldPrice?: number;
+  deliveryFee?: number; // 🚀 🟢 ডেলিভারি ফি টাইপ এড করা হলো
   rating: number;
   reviewsCount: string;
   image: string;
@@ -29,13 +30,14 @@ export interface Product {
   colors: { name: string; hex: string }[];
 }
 
-// 📝 শপ পেজের জন্য সম্পূর্ণ প্রিমিয়াম প্রোডাক্ট ডেটাবেজ (যা ডিটেইলস পেজের সাথে সিঙ্কড)
+// 📝 শপ পেজের জন্য সম্পূর্ণ প্রিমিয়াম প্রোডাক্ট ডেটাবেজ (ডেলিভারি ফিসহ আপডেট করা হলো)
 export const shopProducts: Product[] = [
   {
     id: "p1",
     title: "Minimalist Lounge Chair",
     price: 899,
     oldPrice: 1200,
+    deliveryFee: 45.00, // ⚡
     rating: 4.8,
     reviewsCount: "1.2k Reviews",
     image: "https://images.unsplash.com/photo-1567538096630-e0c55bd6374c?q=80&w=800",
@@ -53,6 +55,7 @@ export const shopProducts: Product[] = [
     id: "p2",
     title: "Contemporary Ceramic Vase",
     price: 240,
+    deliveryFee: 15.00, // ⚡
     rating: 4.5,
     reviewsCount: "412 Reviews",
     image: "https://images.unsplash.com/photo-1578500494198-246f612d3b3d?q=80&w=800",
@@ -71,6 +74,7 @@ export const shopProducts: Product[] = [
     title: "Travertine Coffee Table",
     price: 1850,
     oldPrice: 2200,
+    deliveryFee: 95.00, // ⚡
     rating: 4.9,
     reviewsCount: "89 Reviews",
     image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?q=80&w=800",
@@ -88,6 +92,7 @@ export const shopProducts: Product[] = [
     id: "p4",
     title: "Sleek Pendant Light",
     price: 340,
+    deliveryFee: 25.00, // ⚡
     rating: 4.6,
     reviewsCount: "1.1k Reviews",
     image: "https://images.unsplash.com/photo-1513506003901-1e6a229e2d15?q=80&w=800",
@@ -105,6 +110,7 @@ export const shopProducts: Product[] = [
     id: "p5",
     title: "Monolithic Ash Credenza",
     price: 2100,
+    deliveryFee: 110.00, // ⚡
     rating: 4.8,
     reviewsCount: "67 Reviews",
     image: "https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=800",
@@ -123,6 +129,7 @@ export const shopProducts: Product[] = [
     title: "Organic Bouclé Sofa",
     price: 1499,
     oldPrice: 2500,
+    deliveryFee: 120.00, // ⚡
     rating: 4.7,
     reviewsCount: "2.6k Reviews",
     image: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800",
