@@ -80,7 +80,7 @@ export default function Navbar() {
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
     { name: 'Blog', path: '/blog' },
-    ...(role === 'admin' || role === 'manager' ? [{ name: 'Inventory', path: '/dashboard/products' }] : []),
+    ...(role === 'admin' || role === 'manager' ? [{  path: '/dashboard/products' }] : []),
     { name: 'Dashboard', path: `/dashboard/${role || 'user'}` },
   ];
 

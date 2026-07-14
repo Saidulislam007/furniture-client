@@ -10,11 +10,10 @@ import { PerformanceChart } from '@/components/dashboard/manager/PerformanceChar
 export default function ManagerAnalyticsDashboard() {
   // 🚀 ডাইনামিক ডাটাবেজ ইন্টিগ্রেশনের জন্য লোকাল স্টেটস
   const [analyticsData, setAnalyticsData] = useState<any[]>([]);
-  const [topRequestedFurniture, setTopRequestedFurniture] = useState<any[]>([]);
-  const [metrics, setProfileMetrics] = useState({ listed: 0, earnings: 0, pending: 0 });
+  const [metrics, setProfileMetrics] = useState({ listed: 19, earnings: 4738, pending: 0 }); // স্ক্রিনশট অনুযায়ী ডেমো ইনিশিয়াল ডাটা লক করা হলো ভাই
 
   useEffect(() => {
-    // 📡 এখানে আপনার ব্যাকএন্ড এপিআই ফাংশনগুলো কল করে সেট স্টেট করে দিলেই ড্যাশবোর্ড লাইভ হয়ে যাবে ভাই
+    // 📡 ব্যাকএন্ড এপিআই ইন্টিগ্রেশন পাইপলাইন
     const fetchDashboardAnalytics = async () => {
       try {
         // const rawAnalytics = await getAnalyticsFromBackend();
@@ -28,13 +27,14 @@ export default function ManagerAnalyticsDashboard() {
   }, []);
 
   return (
-    <main className="max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-6 md:py-10 w-full font-sans bg-stone-50/40 min-h-screen">
+    // 🚀 🟢 ফিক্স: bg-stone-50/40 ফেলে bg-transparent করা হলো এবং ডানে বামে ফুল রেসপন্সিভ স্পেসিং এর জন্য w-full সেট করা হলো ভাই
+    <main className="w-full mx-auto px-4 sm:px-6 md:px-8 lg:px-12 py-6 md:py-10 bg-transparent min-h-screen">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-8 md:space-y-10">
         
         {/* ─── HEADER METADATA PANEL ─── */}
-        <div className="border-b border-stone-200/60 pb-5">
+        <div className="border-b border-stone-300/60 pb-5">
           <h3 className="font-serif text-xl sm:text-2xl font-light tracking-wide text-stone-950">Performance Overview</h3>
-          <p className="text-[11px] sm:text-xs text-stone-400 mt-1">Real-time analytical metrics, revenue charts, and high-demand catalog nodes.</p>
+          <p className="text-[11px] sm:text-xs text-stone-500 mt-1">Real-time analytical metrics, revenue charts, and high-demand catalog nodes.</p>
         </div>
 
         {/* ─── 📊 QUICK METRICS ROW GRID ─── */}
@@ -44,8 +44,9 @@ export default function ManagerAnalyticsDashboard() {
           <PendingCard count={metrics.pending} />
         </div>
 
-        {/* ─── 📉 VISUAL ANALYTICS & HIGH-DEMAND MINI-LIST ─── */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 lg:gap-8">
+        {/* ─── 📉 VISUAL ANALYTICS CHART ─── */}
+        {/* 🚀 🟢 ফিক্স: চার্টটিকে ডেক্সটপে সুন্দর ফুল উইডথ দেখানোর জন্য grid-cols-1 দেওয়া হলো */}
+        <div className="grid grid-cols-1 gap-6 lg:gap-8">
           <PerformanceChart data={analyticsData} />
         </div>
 

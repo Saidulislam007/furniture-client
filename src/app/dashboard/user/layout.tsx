@@ -3,9 +3,16 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion, AnimatePresence } from 'framer-motion';
-import { LayoutDashboard, ShoppingBag, Heart, User, HelpCircle, Menu, X, Star, ShieldCheck } from 'lucide-react';
-// 🚀 Better-Auth সেশন ক্লায়েন্ট হুক ইম্পোর্ট করা হলো ভাই ডাইনামিক প্রোফাইলের জন্য
+import { 
+  LayoutDashboard, 
+  ShoppingBag, 
+  Heart, 
+  User, 
+  HelpCircle, 
+  Star, 
+  ShieldCheck,
+  Truck
+} from 'lucide-react';
 import { authClient } from '../../../lib/auth-client';
 
 interface DashboardLayoutProps {
@@ -14,13 +21,11 @@ interface DashboardLayoutProps {
 
 export default function UserDashboardLayout({ children }: DashboardLayoutProps) {
   const pathname = usePathname();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isMounted, setIsMounted] = useState(false);
 
-  // 🚀 Better-Auth রিয়েল-টাইম সেশন ডাটা ডিটেকশন পাইপলাইন
+  // 🚀 Better-Auth রিয়েল-টাইম সেশন ডাটা ডিটেকশন পাইপライン
   const { data: authData } = authClient.useSession();
   
-  // ফলব্যাক ডাটা প্রটেকশন (যদি সেশন ক্যাশ লোড হতে সামান্য দেরিও হয় ভাই)
   const currentUser = {
     name: authData?.user?.name || "Client Member",
     role: authData?.user?.role || "Verified User",
@@ -32,11 +37,6 @@ export default function UserDashboardLayout({ children }: DashboardLayoutProps) 
     setIsMounted(true);
   }, []);
 
-  // রুট চেঞ্জ হলে মোবাইল ড্রয়ার অটোমেটিক বন্ধ হবে
-  useEffect(() => {
-    setIsSidebarOpen(false);
-  }, [pathname]);
-
   if (!isMounted) {
     return (
       <div className="min-h-screen bg-stone-50/60 text-stone-900 font-sans flex pt-20 relative">
@@ -45,104 +45,20 @@ export default function UserDashboardLayout({ children }: DashboardLayoutProps) 
     );
   }
 
+  // 🎯 মোবাইল বটম বারের জন্য স্ক্রিনশট অনুযায়ী ৫টি কী-মেনু আইটেম নোড
+  const mobileMenuItems = [
+    { name: 'Overview', path: '/dashboard/user', icon: <LayoutDashboard className="w-5 h-5" /> },
+    { name: 'Delivery', path: '/dashboard/user/orders', icon: <Truck className="w-5 h-5" /> },
+    { name: 'Support', path: '/dashboard/user/support', icon: <HelpCircle className="w-5 h-5" /> },
+    { name: 'My Reviews', path: '/dashboard/user/reviews', icon: <Star className="w-5 h-5" /> },
+    { name: 'Cartlist', path: '/dashboard/user/cart', icon: <Heart className="w-5 h-5" /> },
+  ];
+
   return (
-    <div className="min-h-screen bg-[#eadecf] text-stone-900 font-sans flex flex-col md:flex-row relative overflow-x-hidden">
-      
-      {/* 📱 MOBILE TOP NAVIGATION PANEL */}
-      {/* 🚀 🟢 ফিক্স: top-[73px] দিয়ে গ্লোবাল নেভবারের ওভ্যারল্যাপ চিরতরে লক করা হলো ভাই */}
-      <div className="w-full h-12 bg-white border-b border-stone-200 fixed top-[87px] left-0 z-40 flex items-center justify-between px-4 md:hidden shadow-xs">
-        <button 
-          onClick={() => setIsSidebarOpen(true)} 
-          className="p-1 text-stone-700 hover:text-stone-950 flex items-center gap-2 text-xs uppercase tracking-wider font-sans font-bold focus:outline-none min-h-[40px]"
-        >
-          <Menu className="w-4 h-4 text-amber-700" /> Account Menu
-        </button>
-        <span className="text-[10px] font-mono bg-stone-100 text-stone-700 px-2 py-0.5 rounded-xs uppercase font-bold tracking-wider">
-          Client Mode
-        </span>
-      </div>
-
-      {/* 📱 MOBILE SIDE DRAWER PANEL WITH PRE-BUILT IMAGE ACCORDANCE */}
-      <AnimatePresence>
-        {isSidebarOpen && (
-          <>
-            {/* Backdrop Mask */}
-            <motion.div 
-              initial={{ opacity: 0 }} 
-              animate={{ opacity: 0.4 }} 
-              exit={{ opacity: 0 }} 
-              onClick={() => setIsSidebarOpen(false)}
-              className="fixed inset-0 bg-black z-50 md:hidden backdrop-blur-xs"
-            />
-            
-            {/* 🚀 🟢 ড্রয়ার কন্টেইনার ফিক্স: এডমিন ও ম্যানেজারের মতো হুবহু ইমেজ ও ক্লোজ বাটন লেআউট */}
-            <motion.div 
-              initial={{ x: '-100%' }} 
-              animate={{ x: 0 }} 
-              exit={{ x: '-100%' }}
-              transition={{ duration: 0.3, ease: 'easeInOut' }}
-              className="fixed top-0 left-0 h-screen w-72 bg-white z-50 p-6 flex flex-col justify-between border-r border-stone-200 shadow-2xl md:hidden"
-            >
-              <div className="space-y-6">
-                
-                {/* 🎯 🎯 ফিক্স: প্রফেশনাল ইউজার প্রোফাইল কার্ড ডিজাইন */}
-                <div className="flex items-center gap-3 border-b border-stone-100 pb-4">
-                  <img 
-                    src={currentUser.image} 
-                    alt={currentUser.name} 
-                    className="w-10 h-10 object-cover border border-stone-200 rounded-sm shrink-0"
-                  />
-                  <div className="min-w-0">
-                    <h4 className="font-serif text-sm font-light text-stone-950 truncate tracking-wide leading-tight">{currentUser.name}</h4>
-                    <span className="text-[9px] font-mono tracking-widest text-amber-700 font-bold uppercase block mt-0.5">{currentUser.role}</span>
-                  </div>
-                  <button 
-                    onClick={() => setIsSidebarOpen(false)} 
-                    className="ml-auto p-1.5 hover:bg-stone-100 rounded-sm text-stone-400 hover:text-stone-900 transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center shrink-0"
-                  >
-                    <X className="w-4 h-4" />
-                  </button>
-                </div>
-
-                {/* Navigation Links (Mobile) */}
-                <nav className="space-y-1">
-                  {[
-                    { name: 'Overview', path: '/dashboard/user', icon: <LayoutDashboard className="w-4 h-4" /> },
-                    { name: 'Order History', path: '/dashboard/user/orders', icon: <ShoppingBag className="w-4 h-4" /> },
-                    { name: 'My Cart', path: '/dashboard/user/cart', icon: <Heart className="w-4 h-4" /> },
-                    { name: 'Product Reviews', path: '/dashboard/user/reviews', icon: <Star className="w-4 h-4" /> },
-                    { name: 'Profile Center', path: '/dashboard/user/profile', icon: <User className="w-4 h-4" /> },
-                    { name: 'Concierge Support', path: '/dashboard/user/support', icon: <HelpCircle className="w-4 h-4" /> },
-                  ].map((item, idx) => {
-                    const isActive = pathname === item.path;
-                    return (
-                      <Link
-                        key={idx}
-                        href={item.path}
-                        className={`w-full h-10 px-3 text-xs uppercase tracking-wider font-medium rounded-sm flex items-center gap-3 transition-all duration-200 ${
-                          isActive
-                            ? 'bg-stone-950 text-white shadow-xs'
-                            : 'text-stone-500 hover:text-stone-900 hover:bg-stone-50'
-                        }`}
-                      >
-                        {item.icon}
-                        <span>{item.name}</span>
-                      </Link>
-                    );
-                  })}
-                </nav>
-              </div>
-
-              <div className="border-t border-stone-100 pt-4 text-[10px] text-stone-400 font-light tracking-wide font-mono flex items-center gap-1.5 select-none">
-                <ShieldCheck className="w-3.5 h-3.5 text-stone-400" /> SECURE ACCESS NODE
-              </div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+    <div className="min-h-screen bg-[#eadecf] text-stone-900 font-sans flex flex-col md:flex-row relative overflow-x-hidden pb-24 md:pb-0">
       
       {/* 🖥️ DESKTOP SIDEBAR CHASSIS */}
-      <aside className="hidden md:flex sticky top-0 h-[calc(100vh-80px)] w-64 bg-white border-r border-stone-200/60 z-30 p-6 pt-24 flex-col justify-between shrink-0">
+      <aside className="hidden md:flex sticky top-20 h-[calc(140vh-80px)] w-64 bg-white border-r border-stone-200/60 z-30 p-6 pt-24 flex-col justify-between shrink-0">
         <div className="space-y-8 mt-4">
           
           {/* ডেক্সটপ প্রোফাইল কার্ড */}
@@ -158,11 +74,12 @@ export default function UserDashboardLayout({ children }: DashboardLayoutProps) 
             </div>
           </div>
           
+          {/* ডেক্সটপ নেভিগেশন লিংকসমূহ */}
           <nav className="space-y-1">
             {[
               { name: 'Overview', path: '/dashboard/user', icon: <LayoutDashboard className="w-4 h-4" /> },
-              { name: 'Order History', path: '/dashboard/user/orders', icon: <ShoppingBag className="w-4 h-4" /> },
-              { name: 'My Cart', path: '/dashboard/user/cart', icon: <Heart className="w-4 h-4" /> },
+              { name: 'Delivery', path: '/dashboard/user/orders', icon: <ShoppingBag className="w-4 h-4" /> },
+              { name: 'Cartlist', path: '/dashboard/user/cart', icon: <Heart className="w-4 h-4" /> },
               { name: 'Product Reviews', path: '/dashboard/user/reviews', icon: <Star className="w-4 h-4" /> },
               { name: 'Profile Center', path: '/dashboard/user/profile', icon: <User className="w-4 h-4" /> },
               { name: 'Concierge Support', path: '/dashboard/user/support', icon: <HelpCircle className="w-4 h-4" /> },
@@ -192,7 +109,34 @@ export default function UserDashboardLayout({ children }: DashboardLayoutProps) 
       </aside>
       
       {/* 🖥️ MAIN WORKSPACE RENDER NODE */}
-      <div className="flex-1 w-full min-w-0 relative pt-32 md:pt-18">{children}</div>
+      {/* 🚀 🟢 ফিক্স: মোবাইল স্ক্রিনে বটম বারের জন্য প্যাডিং এবং মার্জিন পারফেক্ট করা হয়েছে ভাই */}
+      <div className="flex-1 w-full min-w-0 relative pt-24 md:pt-18 px-4 md:px-8">{children}</div>
+
+      {/* 📱 🚀 🟢 PREMIUM MOBILE BOTTOM NAVIGATION BAR (Hwubhu Screen-accordance) */}
+      <div className="fixed bottom-4 left-4 right-4 h-16 bg-[#121212] z-50 rounded-2xl md:hidden shadow-2xl border border-stone-800 flex items-center justify-around px-2">
+        {mobileMenuItems.map((item, idx) => {
+          const isActive = pathname === item.path;
+          return (
+            <Link
+              key={idx}
+              href={item.path}
+              className="flex flex-col items-center justify-center flex-1 h-full transition-all duration-300"
+            >
+              {/* আইকন বক্স রেন্ডারিং (অ্যাক্টিভ হলে পার্পল/ব্লু গ্লো করবে ভাই স্ক্রিনশটের মতো) */}
+              <div className={`transition-colors duration-300 ${isActive ? 'text-indigo-400 scale-105' : 'text-stone-400'}`}>
+                {item.icon}
+              </div>
+              {/* টেক্সট লেবেল */}
+              <span className={`text-[10px] mt-1 font-sans font-medium tracking-wide transition-colors duration-300 ${
+                isActive ? 'text-white font-bold' : 'text-stone-400'
+              }`}>
+                {item.name}
+              </span>
+            </Link>
+          );
+        })}
+      </div>
+
     </div>
   );
 }

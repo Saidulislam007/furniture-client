@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Boxes, AlertCircle, Edit3, Trash2, CheckCircle2, Loader2, X, Save } from 'lucide-react';
+import { Boxes, AlertCircle, Edit3, Trash2, CheckCircle2, Loader2, X, Save, ChevronLeft, ChevronRight, Search, SlidersHorizontal, RotateCcw } from 'lucide-react';
 import { getAllFurniture } from '@/services/api/getFurniture';
 import { deleteFurnitureFromBackend } from '@/services/api/deleteFurniture';
 import { updateFurnitureInBackend } from '@/services/api/editFurniture';
@@ -16,15 +16,27 @@ interface InventoryItem {
   deliveryFee?: number; 
   stock: number;
   status: 'Pending Approval' | 'Published' | 'Unpublished';
+  material?: string;
+  category?: string;
 }
+
+// 🎯 প্রতি পেজে ঠিক ৭টি করে ইনভেন্টরি কন্টেন্ট লক করা হলো ভাই!
+const ITEMS_PER_PAGE = 7;
 
 export default function InventoryLedgerPage() {
   const [inventory, setInventory] = useState<InventoryItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
+  // 📝 🟢 এডভান্সড সার্চ এবং ফিল্টার স্টেটস
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [selectedStatus, setSelectedStatus] = useState<string>('all');
+
   const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
+
+  // প্যাজিনেশন স্টেট
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   useEffect(() => {
     fetchFurnitureData();
@@ -41,6 +53,41 @@ export default function InventoryLedgerPage() {
     }
   };
 
+  // ⚡ সার্চ বা ফিল্টার বদলালে ম্যানেজার স্বয়ংক্রিয়ভাবে আবার ১ম পেজে ফেরত যাবেন ভাই
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, selectedStatus]);
+
+  // 🎯 🚀 আলটিমেট সার্চ ও ফার্নিচার ইনভেন্টরি ফিল্টারিং লজিক ম্যাট্রিক্স
+  const filteredInventory = useMemo(() => {
+    let result = [...inventory];
+
+    // ১. টাইটেল, মেটেরিয়াল বা ক্যাটেগরি কুয়েরি সার্চ ট্র্যাকিং
+    if (searchQuery.trim() !== '') {
+      const query = searchQuery.toLowerCase();
+      result = result.filter(item => 
+        item.title?.toLowerCase().includes(query) || 
+        item.material?.toLowerCase().includes(query) ||
+        item.category?.toLowerCase().includes(query)
+      );
+    }
+
+    // ২. স্ট্যাটাস ফিল্টারিং (Published, Unpublished, Pending Approval)
+    if (selectedStatus !== 'all') {
+      result = result.filter(item => item.status === selectedStatus);
+    }
+
+    return result;
+  }, [inventory, searchQuery, selectedStatus]);
+
+  // 📊 ৭টি ডেটার সাপেক্ষে প্যাজিনেশন ট্র্যাক ক্যালকুলেশন
+  const totalPages = Math.ceil(filteredInventory.length / ITEMS_PER_PAGE);
+
+  const paginatedInventory = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return filteredInventory.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [filteredInventory, currentPage]);
+
   const triggerToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => setToastMessage(null), 3000); 
@@ -52,7 +99,14 @@ export default function InventoryLedgerPage() {
 
     const success = await deleteFurnitureFromBackend(id);
     if (success) {
-      setInventory(prev => prev.filter(item => item._id !== id));
+      setInventory(prev => {
+        const updated = prev.filter(item => item._id !== id);
+        const newTotalPages = Math.ceil(updated.length / ITEMS_PER_PAGE);
+        if (currentPage > newTotalPages && newTotalPages > 0) {
+          setCurrentPage(newTotalPages);
+        }
+        return updated;
+      });
       triggerToast("Asset ledger record purged permanently."); 
     } else {
       triggerToast("Error: Failed to clear asset node from database.");
@@ -93,8 +147,14 @@ export default function InventoryLedgerPage() {
     }
   };
 
+  const resetFilters = () => {
+    setSearchQuery('');
+    setSelectedStatus('all');
+    setCurrentPage(1);
+  };
+
   return (
-    <main className="max-w-[1920px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8 md:py-10 w-full font-sans relative min-h-screen">
+    <main className="w-full mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8 md:py-10 font-sans relative min-h-screen bg-transparent">
       
       {/* 🔔 FLOATING NOTIFICATION TOAST */}
       <AnimatePresence>
@@ -167,26 +227,74 @@ export default function InventoryLedgerPage() {
       </AnimatePresence>
 
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-        <div className="border-b border-stone-200/60 pb-5">
-          <h3 className="font-serif text-2xl font-light tracking-wide text-stone-950 flex items-center gap-2">
-            <Boxes className="w-6 h-6 text-stone-950 stroke-1" /> Inventory Ledger Terminal
-          </h3>
-          <p className="text-xs text-stone-950 mt-1">Real-time stock architecture matrices and adaptive state visibility controllers.</p>
+        
+        {/* Section Header */}
+        <div className="border-b border-stone-200/60 pb-5 flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div className="text-left">
+            <h3 className="font-serif text-2xl font-light tracking-wide text-stone-950 flex items-center gap-2">
+              <Boxes className="w-6 h-6 text-stone-950 stroke-1" /> Inventory Ledger Terminal
+            </h3>
+            <p className="text-xs text-stone-500 mt-1">
+              Showing {paginatedInventory.length} of {filteredInventory.length} active items ({inventory.length} total catalog furniture)
+            </p>
+          </div>
+          <span className="text-[10px] font-mono bg-stone-900 text-white px-2.5 py-1 rounded-sm uppercase font-bold tracking-wider self-start sm:self-auto select-none">
+            Page {currentPage} of {totalPages || 1}
+          </span>
         </div>
 
-        {isLoading ? (
-          <div className="w-full h-64 flex flex-col items-center justify-center gap-2 border border-stone-200/60 bg-white rounded-sm">
-            <Loader2 className="w-6 h-6 animate-spin text-stone-400" />
-            <p className="text-xs font-mono text-stone-400">Synchronizing database ledger nodes...</p>
+        {/* ================= 🔍 🟢 PREMIUM SEARCH & CONTROLS CONTROLLER ================= */}
+        <div className="w-full bg-white/60 border border-stone-200/80 rounded-xl p-3.5 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xs">
+          {/* লাইভ ফার্নিচার সার্চ নোড */}
+          <div className="w-full sm:max-w-md relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search by title, material specs or category..."
+              className="w-full h-10 pl-9 pr-4 bg-white border border-stone-200 text-xs rounded-lg focus:outline-none focus:ring-1 focus:ring-stone-950 transition-all text-stone-900 placeholder-stone-400"
+            />
           </div>
-        ) : inventory.length === 0 ? (
-          <div className="w-full h-48 flex items-center justify-center border border-stone-200/60 bg-white rounded-sm text-xs font-mono text-stone-400">
-            No assets registered in the studio catalog pipeline.
+
+          {/* স্ট্যাটাস ক্যাটেগরি ড্রপডাউন সিলেক্টর এবং রিসেট বাটন */}
+          <div className="w-full sm:w-auto flex items-center justify-end gap-2.5">
+            <div className="relative w-full sm:w-48">
+              <select
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value)}
+                className="w-full h-10 px-3 bg-white border border-stone-200 text-xs rounded-lg focus:outline-none appearance-none font-mono uppercase tracking-wide text-stone-700 cursor-pointer"
+              >
+                <option value="all">All Inventory States</option>
+                <option value="Published">Published State</option>
+                <option value="Unpublished">Unpublished State</option>
+                <option value="Pending Approval">Pending Approval</option>
+              </select>
+              <SlidersHorizontal className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 pointer-events-none" />
+            </div>
+
+            {(searchQuery || selectedStatus !== 'all') && (
+              <button
+                onClick={resetFilters}
+                className="h-10 px-3 bg-stone-100 hover:bg-stone-200 text-stone-700 text-xs font-mono rounded-lg flex items-center justify-center gap-1 transition-colors"
+                title="Reset Filters"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ⏳ ডাটা নোড হ্যান্ডলিং কন্ডিশনাল চেকিং */}
+        {paginatedInventory.length === 0 ? (
+          <div className="w-full h-48 flex flex-col items-center justify-center gap-2 border border-dashed border-stone-300 bg-white rounded-xl text-xs font-mono text-stone-400">
+            <span>No furniture items match your filter parameters.</span>
+            <button onClick={resetFilters} className="text-amber-800 underline uppercase text-[10px] tracking-wider mt-1">Clear Search Query</button>
           </div>
         ) : (
           <>
-            {/* 🖥️ DESKTOP & TABLET LOGISTICS INTERFACE */}
-            <div className="hidden md:block w-full overflow-x-auto bg-white border border-stone-200/60 rounded-sm shadow-xs">
+            {/* 🖥️ DESKTOP INTERFACE */}
+            <div className="hidden md:block w-full overflow-x-auto bg-white border border-stone-200/60 rounded-xl shadow-sm">
               <table className="w-full text-left text-xs sm:text-sm border-collapse">
                 <thead>
                   <tr className="bg-stone-50 border-b border-stone-200 text-[10px] font-semibold text-stone-400 uppercase tracking-widest">
@@ -199,18 +307,18 @@ export default function InventoryLedgerPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-stone-100 text-stone-800">
-                  {inventory.map((item) => (
+                  {paginatedInventory.map((item) => (
                     <tr key={item._id} className="hover:bg-stone-50/30 transition-colors">
                       <td className="p-4 sm:p-5">
                         <div className="w-12 h-12 bg-stone-50 border border-stone-100 rounded-sm overflow-hidden shrink-0">
                           <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                         </div>
                       </td>
-                      <td className="p-4 sm:p-5 font-serif text-stone-950 text-sm font-light">
+                      <td className="p-4 sm:p-5 font-serif text-stone-950 text-sm font-light text-left">
                         <div>{item.title}</div>
                         <div className="text-[10px] font-mono mt-0.5">
                           {item.stock > 0 ? (
-                            <span className="text-stone-400">{item.stock} units available {item.sku && `(SKU: ${item.sku})`}</span>
+                            <span className="text-stone-400">{item.stock} units available</span>
                           ) : (
                             <span className="text-red-500 font-medium flex items-center gap-0.5">
                               <AlertCircle className="w-3 h-3" /> Out of Stock
@@ -231,12 +339,10 @@ export default function InventoryLedgerPage() {
                       </td>
                       <td className="p-4 sm:p-5 text-center">
                         <div className="flex items-center justify-center gap-2">
-                          {/* 🚀 🟢 চোখ বাটন রিমুভ করা হয়েছে */}
-                          <button onClick={() => setEditingItem(item)} className="p-1.5 text-stone-500 hover:text-stone-900 border border-transparent hover:border-stone-200 rounded-sm transition-all" title="Modify Specifications">
+                          <button onClick={() => setEditingItem(item)} className="p-1.5 text-stone-500 hover:text-stone-900 border border-transparent hover:border-stone-200 rounded-sm transition-all">
                             <Edit3 className="w-3.5 h-3.5" />
                           </button>
-
-                          <button onClick={() => handleDeleteProduct(item._id!)} className="p-1.5 text-stone-400 hover:text-red-700 border border-transparent hover:border-red-100 rounded-sm transition-all" title="Purge Spec Node">
+                          <button onClick={() => handleDeleteProduct(item._id!)} className="p-1.5 text-stone-400 hover:text-red-700 border border-transparent hover:border-red-100 rounded-sm transition-all">
                             <Trash2 className="w-3.5 h-3.5" />
                           </button>
                         </div>
@@ -249,10 +355,10 @@ export default function InventoryLedgerPage() {
 
             {/* 📱 MOBILE RESPONSIVE CARDS ENGINE */}
             <div className="block md:hidden space-y-4">
-              {inventory.map((item) => (
-                <div key={item._id} className="bg-white border border-stone-200/60 p-5 rounded-sm shadow-xs space-y-4">
+              {paginatedInventory.map((item) => (
+                <div key={item._id} className="bg-white border border-stone-200/60 p-5 rounded-xl shadow-sm space-y-4">
                   <div className="flex justify-between items-start gap-3">
-                    <div className="flex gap-3">
+                    <div className="flex gap-3 text-left">
                       <div className="w-12 h-12 bg-stone-50 border border-stone-100 rounded-sm overflow-hidden shrink-0">
                         <img src={item.image} alt={item.title} className="w-full h-full object-cover" />
                       </div>
@@ -275,11 +381,10 @@ export default function InventoryLedgerPage() {
                     </div>
 
                     <div className="flex gap-1.5">
-                      {/* 🚀 🟢 মোবাইল কার্ড থেকেও চোখ বাটন সরানো হয়েছে */}
-                      <button onClick={() => setEditingItem(item)} className="h-8 px-2.5 border border-stone-200 rounded-sm text-xs uppercase tracking-wider font-medium text-stone-700 min-h-[36px]">
+                      <button onClick={() => setEditingItem(item)} className="h-8 px-2.5 border border-stone-200 rounded-xl text-xs uppercase tracking-wider font-medium text-stone-700 min-h-[36px]">
                         Edit
                       </button>
-                      <button onClick={() => handleDeleteProduct(item._id!)} className="h-8 w-8 bg-stone-950 text-white rounded-sm flex items-center justify-center min-h-[32px]">
+                      <button onClick={() => handleDeleteProduct(item._id!)} className="h-8 w-8 bg-stone-950 text-white rounded-xl flex items-center justify-center min-h-[32px]">
                         <Trash2 className="w-4 h-4" />
                       </button>
                     </div>
@@ -287,6 +392,44 @@ export default function InventoryLedgerPage() {
                 </div>
               ))}
             </div>
+
+            {/* ================= 📊 🚀 LUXURY PAGINATION LAYER ================= */}
+            {totalPages > 1 && (
+              <div className="w-full flex items-center justify-center gap-2 mt-12 pt-6 border-t border-stone-200/60 font-mono text-xs select-none">
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="w-9 h-9 rounded-xl border border-stone-300 bg-white text-stone-700 flex items-center justify-center transition-all hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {[...Array(totalPages)].map((_, i) => {
+                  const pageNum = i + 1;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-9 h-9 rounded-xl text-center flex items-center justify-center transition-all border ${
+                        currentPage === pageNum
+                          ? 'bg-stone-950 text-white border-stone-950 font-bold shadow-xs'
+                          : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="w-9 h-9 rounded-xl border border-stone-300 bg-white text-stone-700 flex items-center justify-center transition-all hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
           </>
         )}
       </motion.div>

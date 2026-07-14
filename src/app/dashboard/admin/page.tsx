@@ -27,7 +27,7 @@ export default function AdminCoreDashboard() {
   const [users, setUsers] = useState<PlatformUser[]>(mockPlatformUsers);
 
   return (
-    <main className="max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-6 md:py-10 w-full font-sans bg-stone-50/40 min-h-screen box-border overflow-hidden">
+    <main className="max-w-[1920px] mx-auto px-4 sm:px-6 md:px-8 lg:px-12 xl:px-16 py-6 md:py-10 w-full font-sans  min-h-screen box-border overflow-hidden">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6 sm:space-y-8 w-full">
         
         {/* GLOBAL PLATFORM HEADER METADATA (100% Responsive Layout) */}

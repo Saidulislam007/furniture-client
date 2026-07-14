@@ -1,14 +1,14 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Eye, X, Package, Calendar, CreditCard, ShoppingBag, Loader2, ClipboardList, Truck } from 'lucide-react';
+import { Eye, X, Package, Calendar, CreditCard, ShoppingBag, Loader2, ClipboardList, Truck, ChevronLeft, ChevronRight } from 'lucide-react';
 // Better-Auth ক্লায়েন্ট সেশন হুক ইম্পোর্ট
 import { authClient } from "@/lib/auth-client";
 // আপনার তৈরি করা ডেলিভারি গেট সার্ভিস এপিআই ইম্পোর্ট
 import { getDeliveriesFromBackend } from '@/services/api/getDelivery';
 
-// কন্টেইনার কার্ড ইম্পোর্ট
+// কন্টেইনারカード ইম্পোর্ট
 import { ManifestCard } from '../../../components/dashboard/user/ManifestCard';
 import { WalletCard } from '../../../components/dashboard/user/WalletCard';
 
@@ -25,10 +25,13 @@ export interface Order {
   id: string;
   date: string;
   status: 'pending' | 'processing' | 'shipped' | 'delivered';
-  deliveryFee: number; // 🚀 🟢 ইন্টারফেসে ডেলিভারি ফি নোড অবলিগেটরি করা হলো
+  deliveryFee: number; 
   total: number;
   items: OrderItem[];
 }
+
+// 🎯 🚀 প্রতি পেজে ঠিক ৭টি করে অর্ডার রেকর্ড লক করা হলো ভাই
+const ITEMS_PER_PAGE = 7;
 
 export default function OrderHistoryPage() {
   // Better-Auth সেশন এক্সট্রাকশন
@@ -38,6 +41,9 @@ export default function OrderHistoryPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [isDataLoading, setIsDataLoading] = useState<boolean>(true);
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+
+  // প্যাজিনেশন কারেন্ট স্টেট নোড
+  const [currentPage, setCurrentPage] = useState<number>(1);
 
   useEffect(() => {
     if (session?.user?.id) {
@@ -59,7 +65,7 @@ export default function OrderHistoryPage() {
                   year: 'numeric', month: 'long', day: 'numeric'
                 }) : "N/A",
                 status: (item.status?.toLowerCase() as Order['status']) || 'pending',
-                deliveryFee: Number(item.deliveryFee || 0), // 🚀 ডাটাবেজ থেকে ডেলিভারি ফি কনভার্সন
+                deliveryFee: Number(item.deliveryFee || 0), 
                 total: Number(item.price || 0) + Number(item.deliveryFee || 0),
                 items: [
                   {
@@ -87,6 +93,14 @@ export default function OrderHistoryPage() {
     }
   }, [session, isAuthPending]);
 
+  // 📊 ৭টি ডেটার সাপেক্ষে প্যাজিনেশন ট্র্যাক ক্যালকুলেশন
+  const totalPages = Math.ceil(orders.length / ITEMS_PER_PAGE);
+
+  const paginatedOrders = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    return orders.slice(startIndex, startIndex + ITEMS_PER_PAGE);
+  }, [orders, currentPage]);
+
   const getStatusColor = (status: Order['status']) => {
     switch (status) {
       case 'pending': return 'bg-amber-50 text-amber-700 border-amber-200';
@@ -100,7 +114,7 @@ export default function OrderHistoryPage() {
   const isLoading = isAuthPending || isDataLoading;
 
   return (
-    <main className="max-w-[1920px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8 md:py-10 mt-12 md:mt-0 w-full min-h-screen bg-transparent">
+    <main className="w-full mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8 md:py-10 mt-12 md:mt-0 min-h-screen bg-transparent">
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
         
         {/* Section Header */}
@@ -108,7 +122,9 @@ export default function OrderHistoryPage() {
           <h3 className="font-serif text-2xl font-light tracking-wide text-stone-950 flex items-center gap-2">
             <ClipboardList className="w-6 h-6 text-stone-950 stroke-1" /> Order Registry History
           </h3>
-          <p className="text-xs text-stone-950 mt-1">Trace personalized architectural acquisitions and secure logistic lifecycle matrices.</p>
+          <p className="text-xs text-stone-500 mt-1">
+            Showing page {currentPage} of {totalPages || 1} — {ITEMS_PER_PAGE} orders per log view.
+          </p>
         </div>
 
         {/* ⏳ লোডিং ও সেফগার্ড স্টেটস */}
@@ -126,58 +142,95 @@ export default function OrderHistoryPage() {
             <h3 className="text-sm font-serif font-light text-stone-400 tracking-wide">No active order blueprints recorded within your session log.</h3>
           </div>
         ) : (
-          /* 🖥️ লাইভ রেসপন্সিভ টেবিল মেকানিজম */
-          <div className="w-full overflow-x-auto bg-white border border-stone-200/60 rounded-sm shadow-sm no-scrollbar">
-            <table className="w-full border-collapse text-left font-sans text-xs sm:text-sm min-w-[750px] sm:min-w-full">
-              <thead>
-                <tr className="border-b border-stone-200 bg-stone-50 text-[10px] uppercase tracking-widest text-stone-400 font-semibold select-none">
-                  <th className="p-4 sm:p-5 w-24">Image</th>
-                  <th className="p-4 sm:p-5">Order ID</th>
-                  <th className="p-4 sm:p-5">Date</th>
-                  <th className="p-4 sm:p-5">Status</th>
-                  {/* 🚀 🟢 কলাম ৩: ডেলিভারি ফি হেডার নোড */}
-                  <th className="p-4 sm:p-5 text-right">Delivery</th>
-                  <th className="p-4 sm:p-5 text-right">Total Fee</th>
-                  <th className="p-4 sm:p-5 text-center">Action</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-100 text-stone-800">
-                {orders.map((order) => (
-                  <tr key={order.id} className="hover:bg-stone-50/40 transition-colors duration-200">
-                    
-                    {/* প্রোডাক্ট ইমেজ */}
-                    <td className="p-4 sm:p-5">
-                      <div className="w-12 h-12 bg-stone-50 border border-stone-200/60 rounded-sm overflow-hidden shrink-0">
-                        <img src={order.items[0]?.image} alt="Asset node" className="w-full h-full object-cover" />
-                      </div>
-                    </td>
-
-                    <td className="p-4 sm:p-5 font-medium text-stone-950 font-mono tracking-wide truncate max-w-[150px]">{order.id}</td>
-                    <td className="p-4 sm:p-5 text-stone-500 font-light">{order.date}</td>
-                    <td className="p-4 sm:p-5">
-                      <span className={`inline-block px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider border rounded-sm ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                    </td>
-                    
-                    {/* 🚀 🟢 কলাম ৪: টেবিল বডিতে ইন্ডিভিজুয়াল ডেলিভারি ফি ডিসপ্লে */}
-                    <td className="p-4 sm:p-5 text-right font-mono text-stone-500 tabular-nums">${order.deliveryFee.toFixed(2)}</td>
-                    
-                    <td className="p-4 sm:p-5 text-right font-medium text-stone-900 tabular-nums">${order.total.toFixed(2)}</td>
-                    <td className="p-4 sm:p-5 text-center">
-                      <button 
-                        onClick={() => setSelectedOrder(order)}
-                        className="p-1.5 hover:bg-stone-100 text-stone-600 hover:text-amber-800 rounded-sm transition-colors min-w-[32px] min-h-[32px] flex items-center justify-center mx-auto"
-                        aria-label="View Order Blueprint"
-                      >
-                        <Eye className="w-4 h-4" />
-                      </button>
-                    </td>
+          <>
+            {/* 🖥️ লাইভ রেসপন্সিভ টেবিল মেকানিজম */}
+            <div className="w-full overflow-x-auto bg-white border border-stone-200/60 rounded-xl shadow-sm no-scrollbar">
+              <table className="w-full border-collapse text-left font-sans text-xs sm:text-sm min-w-[750px] sm:min-w-full">
+                <thead>
+                  <tr className="border-b border-stone-200 bg-stone-50 text-[10px] uppercase tracking-widest text-stone-400 font-semibold select-none">
+                    <th className="p-4 sm:p-5 w-24">Image</th>
+                    <th className="p-4 sm:p-5">Order ID</th>
+                    <th className="p-4 sm:p-5">Date</th>
+                    <th className="p-4 sm:p-5">Status</th>
+                    <th className="p-4 sm:p-5 text-right">Delivery</th>
+                    <th className="p-4 sm:p-5 text-right">Total Fee</th>
+                    <th className="p-4 sm:p-5 text-center">Action</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody className="divide-y divide-stone-100 text-stone-800">
+                  {paginatedOrders.map((order) => (
+                    <tr key={order.id} className="hover:bg-stone-50/40 transition-colors duration-200">
+                      <td className="p-4 sm:p-5">
+                        <div className="w-12 h-12 bg-stone-50 border border-stone-200/60 rounded-sm overflow-hidden shrink-0">
+                          <img src={order.items[0]?.image} alt="Asset node" className="w-full h-full object-cover" />
+                        </div>
+                      </td>
+
+                      <td className="p-4 sm:p-5 font-medium text-stone-950 font-mono tracking-wide truncate max-w-[150px]">{order.id}</td>
+                      <td className="p-4 sm:p-5 text-stone-500 font-light">{order.date}</td>
+                      <td className="p-4 sm:p-5">
+                        <span className={`inline-block px-2 py-0.5 text-[10px] font-medium uppercase tracking-wider border rounded-sm ${getStatusColor(order.status)}`}>
+                          {order.status}
+                        </span>
+                      </td>
+                      <td className="p-4 sm:p-5 text-right font-mono text-stone-500 tabular-nums">${order.deliveryFee.toFixed(2)}</td>
+                      <td className="p-4 sm:p-5 text-right font-medium text-stone-900 tabular-nums">${order.total.toFixed(2)}</td>
+                      <td className="p-4 sm:p-5 text-center">
+                        <button 
+                          onClick={() => setSelectedOrder(order)}
+                          className="p-1.5 hover:bg-stone-100 text-stone-600 hover:text-amber-800 rounded-sm min-w-[32px] min-h-[32px] flex items-center justify-center mx-auto"
+                          aria-label="View Order Blueprint"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            {/* ================= 📊 🚀 LUXURY PAGINATION LAYER ================= */}
+            {totalPages > 1 && (
+              <div className="w-full flex items-center justify-center gap-2 mt-12 pt-6 border-t border-stone-200/60 font-mono text-xs select-none">
+                {/* Previous Button */}
+                <button
+                  onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                  disabled={currentPage === 1}
+                  className="w-9 h-9 rounded-xl border border-stone-300 bg-white text-stone-700 flex items-center justify-center transition-all hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronLeft className="w-4 h-4" />
+                </button>
+
+                {/* Page Numbers Mapping */}
+                {[...Array(totalPages)].map((_, i) => {
+                  const pageNum = i + 1;
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setCurrentPage(pageNum)}
+                      className={`w-9 h-9 rounded-xl text-center flex items-center justify-center transition-all border ${
+                        currentPage === pageNum
+                          ? 'bg-stone-950 text-white border-stone-950 font-bold shadow-xs'
+                          : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+
+                {/* Next Button */}
+                <button
+                  onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                  disabled={currentPage === totalPages}
+                  className="w-9 h-9 rounded-xl border border-stone-300 bg-white text-stone-700 flex items-center justify-center transition-all hover:bg-stone-50 disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  <ChevronRight className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+          </>
         )}
 
         {/* ─── INTERACTIVE DETAIL SLIDE-OVER DRAWER মডাল ─── */}
@@ -246,7 +299,7 @@ export default function OrderHistoryPage() {
                     </div>
                   </div>
 
-                  {/* 🚀 🟢 স্লাইড-ওভার প্যানেলের ভেতর ডেলিভারি ফি-র ডেডিকেটেড অবজেক্ট ব্রেকডাউন */}
+                  {/* Logistics Breakdown */}
                   <div className="space-y-2.5 bg-stone-50/60 border border-stone-200/40 p-4 rounded-sm text-xs font-mono text-stone-600">
                     <div className="flex justify-between">
                       <span className="text-stone-400">Base Evaluation:</span>

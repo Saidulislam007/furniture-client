@@ -82,7 +82,7 @@ export default function AddProductNodePage() {
   };
 
   return (
-    <main className="max-w-[1920px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8 md:py-10 w-full font-sans bg-stone-50/40 min-h-screen relative">
+    <main className="max-w-[1920px] mx-auto px-4 sm:px-8 lg:px-12 xl:px-16 py-8 md:py-10 w-full font-sans  min-h-screen relative">
       
       {/* 🚀 🟢 ফ্লোটিং লাক্সারি টোস্ট নোটিফিকেশন ইঞ্জিন */}
       <AnimatePresence>

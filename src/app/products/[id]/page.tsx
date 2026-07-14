@@ -6,12 +6,36 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Loader2, ArrowLeft, Receipt, CreditCard, X, ShoppingBag, Truck } from "lucide-react";
 // Better-Auth ক্লায়েন্ট সেশন হুক ইম্পোর্ট
 import { authClient } from "@/lib/auth-client";
-// কার্ট পোস্ট সার্ভিস এপিআই ইম্পোর্ট
-import { sendToCartBackend } from "@/services/api/postCart";
-// 🚀 ডেলিভারি পোস্ট সার্ভিস ইম্পোর্ট
-import { sendToDeliveriesBackend } from "@/services/api/postDelivery";
-// শপ পেজের এক্সপোর্টেড ডেটাবেজ ইম্পোর্ট
-import { shopProducts, Product } from "../page"; 
+// 🚀 🟢 ফিক্স: আপনার অরিজিনাল মডুলার সার্ভিস ফাংশনটি ইম্পোর্ট করা হলো ভাই
+import { getAllFurniture } from '@/services/api/getFurniture';
+
+// 📑 টাইপ ডেফিনিশন (মঙ্গোডিবি আর্কিটেকচার ফ্রেম)
+export interface Product {
+  _id: string; // মঙ্গোডিবি ইউনিক অবজেক্ট আইডি
+  title: string;
+  price: number;
+  oldPrice?: number;
+  deliveryFee?: number;
+  rating: number;
+  reviewsCount: string;
+  image: string;
+  description: string;
+  category: string;
+  subCategory: string;
+  stock: number;
+  material: string;
+  warranty: string;
+  dimensions: {
+    width: string;
+    height: string;
+    depth: string;
+  };
+  colors: { name: string; hex: string }[];
+  status: "Published" | "Draft";
+  managerId: string;
+  managerEmail: string;
+  createdAt: { $date: string } | string;
+}
 
 export default function ProductDetailsPage() {
   const params = useParams();
@@ -27,25 +51,40 @@ export default function ProductDetailsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isAddingToCart, setIsAddingToCart] = useState<boolean>(false);
   
-  // পেমেন্ট রিসিট মডাল এবং চেকিং স্টেটস
   const [showReceipt, setShowReceipt] = useState<boolean>(false);
   const [isProcessingOrder, setIsProcessingOrder] = useState<boolean>(false);
 
+  // 🎯 🟢 লজিক ফিক্স: সার্ভিস থেকে ডাটা নিয়ে এসে আইডি অনুযায়ী প্রোডাক্ট খোঁজা
   useEffect(() => {
-    const timer = setTimeout(() => {
-      const foundProduct = shopProducts.find((p) => p.id === productId);
-      if (foundProduct) {
-        setProduct(foundProduct);
-        if (foundProduct.colors && foundProduct.colors.length > 0) {
-          setSelectedColor(foundProduct.colors[foundProduct.colors.length - 1].name);
+    const fetchSingleProduct = async () => {
+      try {
+        setLoading(true);
+        // আপনার লাইভ মঙ্গোডিবি কালেকশন ডেটা পুল
+        const data: Product[] = await getAllFurniture();
+        
+        if (data && Array.isArray(data)) {
+          // মঙ্গোডিবি অবজেক্ট আইডি `_id` দিয়ে সিঙ্গেল প্রোডাক্ট ম্যাচিং ভাই
+          const foundProduct = data.find((p) => p._id === productId);
+          if (foundProduct) {
+            setProduct(foundProduct);
+            if (foundProduct.colors && foundProduct.colors.length > 0) {
+              setSelectedColor(foundProduct.colors[foundProduct.colors.length - 1].name);
+            }
+          } else {
+            setProduct(null);
+          }
         }
-      } else {
+      } catch (error) {
+        console.error("❌ Failed to resolve product node from database specs:", error);
         setProduct(null);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
-    }, 1000);
+    };
 
-    return () => clearTimeout(timer);
+    if (productId) {
+      fetchSingleProduct();
+    }
   }, [productId]);
 
   const triggerToast = (msg: string) => {
@@ -67,7 +106,7 @@ export default function ProductDetailsPage() {
       userId: session.user.id,
       userName: session.user.name || "Anonymous User",
       userEmail: session.user.email,
-      productId: product.id,
+      productId: product._id, // 🎯 মঙ্গোডিবি আইডি ট্রান্সফার
       title: product.title,
       price: Number(product.price),
       image: product.image,
@@ -96,7 +135,7 @@ export default function ProductDetailsPage() {
     }
   };
 
-  // 🚀 🟢 বাই নাও পেমেন্ট কনফার্মেশন ও ডেলিভারি কালেকশন পুশ লজিক (ডেলিভারি ফিসহ)
+  // 🚀 বাই নাও পেমেন্ট কনফার্মেশন ও ডেলিভারি কালেকশন পুশ লজিক
   const handleConfirmPurchase = async () => {
     if (!session || !product) return;
     
@@ -106,24 +145,34 @@ export default function ProductDetailsPage() {
       userId: session.user.id,
       userName: session.user.name || "Anonymous User",
       userEmail: session.user.email,
-      productId: product.id,
+      productId: product._id, // 🎯 মঙ্গোডিবি আইডি ট্রান্সফার
       title: product.title,
       price: Number(product.price),
-      deliveryFee: Number(product.deliveryFee || 0), // 👈 পেলোডে ডেলিভারি ফি পুশ করা হলো
+      deliveryFee: Number(product.deliveryFee || 0),
       image: product.image,
       color: selectedColor || "Default",
     };
 
-    const success = await sendToDeliveriesBackend(deliveryPayload);
+    try {
+      const response = await fetch('http://localhost:5000/api/v1/deliveries', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(deliveryPayload),
+      });
 
-    if (success) {
-      setShowReceipt(false);
-      triggerToast("Payment successful! Order logged under PENDING ledger.");
-    } else {
-      triggerToast("Error: Critical failure in deployment pipeline.");
+      const data = await response.json();
+
+      if (response.ok) {
+        setShowReceipt(false);
+        triggerToast("Payment successful! Order logged under PENDING ledger.");
+      } else {
+        triggerToast("Error: Critical failure in deployment pipeline.");
+      }
+    } catch (err) {
+      triggerToast("Error: Failed to secure transaction bridge.");
+    } finally {
+      setIsProcessingOrder(false);
     }
-
-    setIsProcessingOrder(false);
   };
 
   if (loading || isAuthPending) {
@@ -157,7 +206,7 @@ export default function ProductDetailsPage() {
         )}
       </AnimatePresence>
 
-      {/* 🚀 🟢 আপগ্রেড হওয়া লাক্সারি ইনভয়েস রিসিট মডাল প্যানেল */}
+      {/* 🚀 🟢 ইনভয়েস রিসিট মডাল প্যানেল */}
       <AnimatePresence>
         {showReceipt && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs p-4">
@@ -169,20 +218,18 @@ export default function ProductDetailsPage() {
                 <button onClick={() => setShowReceipt(false)} className="text-stone-400 hover:text-stone-900 transition-colors"><X className="w-4 h-4" /></button>
               </div>
 
-              {/* রিসিট বডি ইন্টেল উইথ ম্যাথমেটিকাল টোটালস */}
+              {/* রিসিট বডি */}
               <div className="space-y-4 text-xs font-mono text-stone-600 bg-stone-50 p-4 border border-stone-100 rounded-xs">
                 <div className="flex justify-between"><span className="text-stone-400">Client Node:</span><span className="text-stone-950 font-medium">{session?.user?.name}</span></div>
                 <div className="flex justify-between truncate"><span className="text-stone-400">Registry Email:</span><span className="text-stone-950">{session?.user?.email}</span></div>
                 <div className="border-t border-stone-200/60 my-2 pt-2 flex justify-between"><span className="text-stone-400">Product Manifest:</span><span className="text-stone-950 font-sans font-light truncate max-w-[180px]">{product.title}</span></div>
                 <div className="flex justify-between"><span className="text-stone-400">Spec Configuration:</span><span className="text-amber-700 font-semibold uppercase text-[10px] bg-amber-50 px-1.5 py-0.5 rounded-xs border border-amber-100">{selectedColor || "Default"}</span></div>
                 
-                {/* 🚀 রিসিট বডিতে ডেলিভারি ফি ব্রেকডাউন */}
                 <div className="flex justify-between"><span className="text-stone-400">Base Valuation:</span><span className="text-stone-950">${product.price.toFixed(2)}</span></div>
                 <div className="flex justify-between"><span className="text-stone-400">Logistics Fee:</span><span className="text-stone-950">${(product.deliveryFee || 0).toFixed(2)}</span></div>
                 
                 <div className="flex justify-between"><span className="text-stone-400">Logistics State:</span><span className="text-stone-950 uppercase text-[10px] font-bold">PENDING</span></div>
                 
-                {/* 🚀 ফাইনাল সামেশন টোটাল (Price + Delivery Fee) */}
                 <div className="border-t border-stone-300 mt-3 pt-3 flex justify-between text-sm font-sans">
                   <span className="font-serif text-stone-950 font-medium">Total Ledger Fee:</span>
                   <span className="font-mono font-bold text-stone-950">
@@ -214,7 +261,7 @@ export default function ProductDetailsPage() {
           Back to Catalog
         </button>
 
-        {/* Split responsive layout */}
+        {/* Product Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-16 items-start">
           <div className="w-full aspect-[4/3.5] md:aspect-[4/4] bg-[#eadecf] rounded-[2rem] overflow-hidden shadow-sm">
             <img src={product.image} alt={product.title} className="w-full h-full object-cover object-center transform hover:scale-102 transition-transform duration-700" />
@@ -245,7 +292,7 @@ export default function ProductDetailsPage() {
               <button className="text-sm text-gray-600 underline font-light hover:text-gray-900">{product.reviewsCount}</button>
             </div>
 
-            {/* 🚀 প্রাইস সেকশনের ঠিক নিচে মিনিমালিস্ট লাইভ ডেলিভারি ফি ডিসপ্লে */}
+            {/* Delivery Fee Display */}
             <div className="flex flex-col space-y-1 mb-6">
               <div className="flex items-baseline gap-4">
                 <span className="text-3xl sm:text-4xl font-bold text-gray-950">${product.price}</span>
@@ -263,7 +310,7 @@ export default function ProductDetailsPage() {
               <p className="text-sm sm:text-base text-gray-600 font-light leading-relaxed">{product.description}</p>
             </div>
 
-            {/* Specs Sheets */}
+            {/* Specs Sheet */}
             <div className="mb-6 p-4 bg-white/60 border border-gray-200/60 rounded-xl space-y-2.5 text-xs text-gray-700">
               <div className="flex justify-between border-b border-gray-100 pb-2">
                 <span className="font-medium text-gray-400 uppercase tracking-wider">Material Composition</span>
@@ -271,15 +318,12 @@ export default function ProductDetailsPage() {
               </div>
               <div className="flex justify-between border-b border-gray-100 pb-2">
                 <span className="font-medium text-gray-400 uppercase tracking-wider">Dimensions (W × H × D)</span>
-                <span className="text-gray-900 font-mono">{product.dimensions.width} × {product.dimensions.height} × {product.dimensions.depth}</span>
+                <span className="text-gray-900 font-mono">{product.dimensions?.width} × {product.dimensions?.height} × {product.dimensions?.depth}</span>
               </div>
-              
-              {/* 🚀 🟢 নতুন ফিক্স: স্পেক শিট টেবিলের ভেতরেও ডেলিভারি ফি-র আরেকটি প্রাতিষ্ঠানিক রো অ্যাড করা হলো */}
               <div className="flex justify-between border-b border-gray-100 pb-2">
                 <span className="font-medium text-gray-400 uppercase tracking-wider">Logistics Fee Matrix</span>
                 <span className="text-stone-900 font-mono font-medium">${(product.deliveryFee || 0).toFixed(2)}</span>
               </div>
-
               <div className="flex justify-between">
                 <span className="font-medium text-gray-400 uppercase tracking-wider">Warranty Structure</span>
                 <span className="text-gray-900 font-light">{product.warranty}</span>
@@ -289,11 +333,11 @@ export default function ProductDetailsPage() {
             {/* Colors Swatches */}
             <div className="mb-8">
               <div className="flex items-baseline gap-2 mb-3">
-                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{product.colors.length} {product.colors.length > 1 ? "Colors" : "Color"} Available</h3>
+                <h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">{product.colors?.length || 0} {product.colors?.length > 1 ? "Colors" : "Color"} Available</h3>
                 {selectedColor && <span className="text-xs text-gray-500 font-light">({selectedColor})</span>}
               </div>
               <div className="flex items-center gap-3">
-                {product.colors.map((color) => (
+                {product.colors?.map((color) => (
                   <button
                     key={color.name}
                     onClick={() => setSelectedColor(color.name)}
@@ -307,7 +351,7 @@ export default function ProductDetailsPage() {
               </div>
             </div>
 
-            {/* CTA Pipeline Actions */}
+            {/* Actions */}
             <div className="mt-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
               <button 
                 onClick={() => {
