@@ -9,16 +9,22 @@ import {
   Settings,
   ShieldAlert
 } from 'lucide-react';
-
-const currentAdmin = {
-  name: "Al-Amin Hossain",
-  role: "Root Administrator",
-  image: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150"
-};
+// 🚀 🟢 Better-Auth সেশন ক্লায়েন্ট হুক ইম্পোর্ট করা হলো ভাই ডাইনামিক প্রোফাইলের জন্য
+import { authClient } from '@/lib/auth-client';
 
 export default function AdminDashboardLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
+
+  // 🚀 🟢 Better-Auth রিয়েল-টাইম সেশন ডাটা ডিটেকশন পাইপলাইন
+  const { data: authData } = authClient.useSession();
+  
+  // 🎯 🚀 ফলব্যাক ডাটা প্রটেকশন (ডেমো ডাটা সরিয়ে সেশনের লাইভ ডাটা বাইন্ডিং ভাই)
+  const currentAdmin = {
+    name: authData?.user?.name || "Root Administrator",
+    role: "Root Administrator",
+    image: authData?.user?.image || "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=150"
+  };
 
   useEffect(() => {
     setIsMounted(true);
@@ -32,7 +38,7 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
   const adminMenuItems = [
     { name: 'Overview', path: '/dashboard/admin', icon: <LayoutDashboard className="w-5 h-5" /> },
     { name: 'Governance', path: '/dashboard/admin/roles', icon: <Users className="w-5 h-5" /> },
-    { name: 'Clearance', path: '/dashboard/admin/clearance', icon: <ShieldAlert className="w-5 h-5" /> },
+    { name: 'Clearance', path: '/dashboard/admin/clearance', border: 'border-red-200', icon: <ShieldAlert className="w-5 h-5" /> },
     { name: 'Settings', path: '/dashboard/admin/settings', icon: <Settings className="w-5 h-5" /> },
   ];
 
@@ -43,14 +49,14 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
       <aside className="hidden md:flex sticky top-20 h-[calc(140vh-80px)] w-64 bg-white border-r border-stone-200/60 z-30 p-6 pt-24 flex-col justify-between shrink-0">
         <div className="space-y-8 mt-4">
           
-          {/* ডেক্সটপ প্রোফাইল কার্ড */}
+          {/* 🎯 🚀 ডেক্সটপ প্রোফাইল কার্ড - এখন ১০০% লাইভ সেশন ডাইনামিক ভাই */}
           <div className="flex items-center gap-3 border-b border-stone-100 pb-5">
             <img 
               src={currentAdmin.image} 
               alt={currentAdmin.name} 
               className="w-11 h-11 object-cover border border-stone-200 rounded-sm shrink-0 shadow-xs"
             />
-            <div className="min-w-0">
+            <div className="min-w-0 text-left">
               <h4 className="font-serif text-sm font-light text-stone-950 truncate tracking-wide leading-tight">{currentAdmin.name}</h4>
               <span className="text-[9px] font-mono tracking-widest text-red-700 font-bold uppercase block mt-1">{currentAdmin.role}</span>
             </div>
@@ -84,10 +90,9 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
       </aside>
       
       {/* 🖥️ MAIN WORKSPACE RENDER NODE */}
-      {/* 🚀 🟢 ফিক্স: মোবাইল স্ক্রিনে বটম বারের সাপেক্ষে ভিউ পোর্ট এলাইনমেন্ট পারফেক্ট করা হলো ভাই */}
       <div className="flex-1 w-full min-w-0 relative pt-24 md:pt-18 px-4 md:px-8">{children}</div>
 
-      {/* 📱 🚀 🟢 PREMIUM MOBILE BOTTOM NAVIGATION BAR FOR ADMIN */}
+      {/* 📱 PREMIUM MOBILE BOTTOM NAVIGATION BAR FOR ADMIN */}
       <div className="fixed bottom-4 left-4 right-4 h-16 bg-[#121212] z-50 rounded-2xl md:hidden shadow-2xl border border-stone-800 flex items-center justify-around px-2">
         {adminMenuItems.map((item, idx) => {
           const isActive = pathname === item.path;
@@ -97,11 +102,9 @@ export default function AdminDashboardLayout({ children }: { children: React.Rea
               href={item.path}
               className="flex flex-col items-center justify-center flex-1 h-full transition-all duration-300"
             >
-              {/* অ্যাক্টিভ আইকন সিগন্যাল (রুট অ্যাডমিন থিমের জন্য শার্প ইন্ডিগো/ব্লু কালার গ্লো ভাই) */}
               <div className={`transition-all duration-300 ${isActive ? 'text-indigo-400 scale-105' : 'text-stone-400'}`}>
                 {item.icon}
               </div>
-              {/* টেক্সট লেবেল */}
               <span className={`text-[10px] mt-1 font-sans font-medium tracking-wide transition-colors duration-300 ${
                 isActive ? 'text-white font-bold' : 'text-stone-400'
               }`}>
