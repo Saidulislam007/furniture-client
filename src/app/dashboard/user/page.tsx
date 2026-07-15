@@ -9,7 +9,7 @@ import { InvestmentCard } from '../../../components/dashboard/user/InvestmentCar
 import { ManifestCard } from '../../../components/dashboard/user/ManifestCard';
 import { WalletCard } from '../../../components/dashboard/user/WalletCard';
 import { InvestmentPieChart } from '@/components/dashboard/user/InvestmentPieChart';
-
+const BACKEND_BASE_URL = process.env.BASE_URL ;
 export default function OverviewPage() {
   // Better-Auth সেশন এক্সট্রাকশন
   const { data: session, isPending: isAuthPending } = authClient.useSession();
@@ -31,7 +31,7 @@ export default function OverviewPage() {
         setIsLoading(true);
         
         // 🚀 আপনার এক্সপ্রেস ব্যাকএন্ডের ডিরেক্ট ইউজার ডেলিভারি/অর্ডার এপিআই হিট করা হচ্ছে ভাই
-        const response = await fetch(`http://localhost:5000/api/v1/deliveries/${session.user.id}`);
+        const response = await fetch(`${BACKEND_BASE_URL}/api/v1/deliveries/${session.user.id}`);
         const result = await response.json();
 
         if (result.success && Array.isArray(result.data)) {

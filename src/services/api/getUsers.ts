@@ -1,9 +1,10 @@
 // src/services/api/getUsers.ts
 
 // 🚀 🟢 ব্যাকএন্ড থেকে সমস্ত ইউজার ডাটা তুলে আনার জন্য ডেডিকেটেড টাইপস্ক্রিপ্ট ফাংশন
+const BACKEND_BASE_URL = process.env.BASE_URL ; 
 export const getAllUsers = async (): Promise<any[] | null> => {
   try {
-    const response = await fetch('http://localhost:5000/api/v1/users', {
+    const response = await fetch(`${BACKEND_BASE_URL}/api/v1/users`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

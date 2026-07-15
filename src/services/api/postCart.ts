@@ -1,7 +1,8 @@
 // src/services/api/postCart.ts
+const BACKEND_BASE_URL = process.env.BASE_URL ; 
 export const sendToCartBackend = async (payload: any): Promise<boolean> => {
   try {
-    const response = await fetch('http://localhost:5000/api/v1/cart', {
+    const response = await fetch(`${BACKEND_BASE_URL}/api/v1/cart`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

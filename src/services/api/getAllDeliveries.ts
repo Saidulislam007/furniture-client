@@ -2,10 +2,11 @@
  * 🚀 ম্যানেজার/অ্যাডমিন প্যানেলের জন্য ডাটাবেজ থেকে সমস্ত ইউজারের ডেলিভারি ডাটা কুয়েরি করার গ্লোবাল ফাংশন
  * @returns {Promise<any[] | null>} ডাটাবেজের সব ডেলিভারি অবজেক্টের অ্যারে অথবা ফেইলুর নোটিফিকেশন
  */
+const BACKEND_BASE_URL = process.env.BASE_URL ; 
 export const getAllDeliveriesFromBackend = async (): Promise<any[] | null> => {
   try {
     // ব্যাকএন্ডের গ্লোবাল GET এন্ডপয়েন্টে হিট করা হচ্ছে
-    const response = await fetch('http://localhost:5000/api/v1/deliveries', {
+    const response = await fetch(`${BACKEND_BASE_URL}/api/v1/deliveries`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

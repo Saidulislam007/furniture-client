@@ -1,8 +1,9 @@
 // src/services/api/getFurniture.ts
 
+const BACKEND_BASE_URL = process.env.BASE_URL ; 
 export const getAllFurniture = async (): Promise<any[] | null> => {
   try {
-    const response = await fetch('http://localhost:5000/api/v1/furniture', {
+    const response = await fetch(`${BACKEND_BASE_URL}/api/v1/furniture`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',

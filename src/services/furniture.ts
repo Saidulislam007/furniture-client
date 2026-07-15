@@ -1,12 +1,12 @@
 // src/services/furniture.ts
-
+const BACKEND_BASE_URL = process.env.BASE_URL ; 
 export const sendFurnitureToBackend = async (payload: any): Promise<boolean> => {
   try {
     // 🔒 ব্রাউজারের localStorage থেকে ম্যানেজারের অ্যাক্সেস টোকেন তুলে নেওয়া হচ্ছে
     const token = localStorage.getItem('token'); 
 
     // 🚀 🟢 ফিক্স: ব্যাকএন্ডের সাথে পাথ পুরোপুরি ম্যাচ করা হলো (অতিরিক্ত /submit রিমুভড)
-    const response = await fetch('http://localhost:5000/api/v1/furniture', {
+    const response = await fetch(`${BACKEND_BASE_URL}/api/v1/furniture`, {
       method: 'POST',
       headers: { 
         'Content-Type': 'application/json',

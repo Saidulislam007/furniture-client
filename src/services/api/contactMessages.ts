@@ -8,11 +8,10 @@ interface ContactPayload {
 
 // 🎯 🚀 আপনার এক্সপ্রেস ব্যাকএন্ডের বেস ইউআরএল পোর্ট লক করুন এখানে ভাই
 // (যদি পোর্ট ৫০0০ না হয়ে অন্য কিছু হয়, তবে শুধু সংখ্যাটা চেঞ্জ করে দিন)
-const BACKEND_BASE_URL = 'http://localhost:5000'; 
+const BACKEND_BASE_URL = process.env.BASE_URL ; 
 
-/**
- * 🚀 🟢 এক্সপ্রেস ব্যাকএন্ডে কন্টাক্ট扪সেজ পাঠানোর পোস্ট এপিআই ফাংশন
- */
+
+
 export const sendContactMessageToBackend = async (payload: ContactPayload): Promise<boolean> => {
   try {
     // 🔗 এখানে ফুল পাথ সেট করে দেওয়া হলো যাতে Next.js নিজের ভেতর না খুঁজে সরাসরি এক্সপ্রেসে হিট করে

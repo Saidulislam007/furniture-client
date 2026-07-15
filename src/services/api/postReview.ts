@@ -3,9 +3,11 @@
  * @param {any} payload - রিভিউ অবজেক্ট (userId, userEmail, userName, productId, productName, rating, comment)
  * @returns {Promise<boolean>} ডাটাবেজে সাকসেসফুলি ইনসার্ট হলে true, নতুবা false
  */
+
+const BACKEND_BASE_URL = process.env.BASE_URL ; 
 export const sendToReviewsBackend = async (payload: any): Promise<boolean> => {
   try {
-    const response = await fetch('http://localhost:5000/api/v1/reviews', {
+    const response = await fetch(`${BACKEND_BASE_URL}/api/v1/reviews`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
