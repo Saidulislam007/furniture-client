@@ -1,5 +1,5 @@
 // src/services/api/deleteFurniture.ts
-const BACKEND_BASE_URL = process.env.BASE_URL ; 
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ; 
 export const deleteFurnitureFromBackend = async (id: string): Promise<boolean> => {
   try {
     const response = await fetch(`${BACKEND_BASE_URL}/api/v1/furniture/${id}`, {

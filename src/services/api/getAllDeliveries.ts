@@ -2,7 +2,7 @@
  * 🚀 ম্যানেজার/অ্যাডমিন প্যানেলের জন্য ডাটাবেজ থেকে সমস্ত ইউজারের ডেলিভারি ডাটা কুয়েরি করার গ্লোবাল ফাংশন
  * @returns {Promise<any[] | null>} ডাটাবেজের সব ডেলিভারি অবজেক্টের অ্যারে অথবা ফেইলুর নোটিফিকেশন
  */
-const BACKEND_BASE_URL = process.env.BASE_URL ; 
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 'https://furniture-server-1-59ic.onrender.com'; 
 export const getAllDeliveriesFromBackend = async (): Promise<any[] | null> => {
   try {
     // ব্যাকএন্ডের গ্লোবাল GET এন্ডপয়েন্টে হিট করা হচ্ছে

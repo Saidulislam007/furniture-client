@@ -7,7 +7,7 @@
  * 
  */
 
-const BACKEND_BASE_URL = process.env.BASE_URL ; 
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ; 
 export const updateFurnitureInBackend = async (id: string, updateData: Record<string, any>): Promise<boolean> => {
   try {
     // 🎯 🚀 মেথড পরিবর্তন করে PATCH করা হলো যাতে ব্যাকএন্ডের ডাইনামিক আপডেটের সাথে সিঙ্ক হয় ভাই

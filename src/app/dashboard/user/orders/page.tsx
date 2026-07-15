@@ -8,9 +8,7 @@ import { authClient } from "@/lib/auth-client";
 // আপনার তৈরি করা ডেলিভারি গেট সার্ভিস এপিআই ইম্পোর্ট
 import { getDeliveriesFromBackend } from '@/services/api/getDelivery';
 
-// কন্টেইনারカード ইম্পোর্ট
-import { ManifestCard } from '../../../components/dashboard/user/ManifestCard';
-import { WalletCard } from '../../../components/dashboard/user/WalletCard';
+// কন্টেইনারカード ইম্পোর্
 
 // --- ১০০% টাইপ সেফ ইন্টারফেস ডেফিনিশন ---
 export interface OrderItem {

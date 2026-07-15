@@ -82,7 +82,7 @@ export default function ProductDetailsPage() {
   const [editDeliveryFee, setEditDeliveryFee] = useState<number>(0);
   const [editStock, setEditStock] = useState<number>(0);
   const [editStatus, setEditStatus] = useState<string>("Published");
-const BACKEND_BASE_URL = process.env.BASE_URL ; 
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ; 
   useEffect(() => {
   console.log("Current Product ID from URL:", productId);
 }, [productId]);
@@ -201,38 +201,47 @@ const fetchProductReviews = async () => {
     }
   };
 
-  // 🚀 বাই নাও অর্ডার লগ
-  const handleConfirmPurchase = async () => {
-    if (!session || !product) return;
+// ফিক্সড পেমেন্ট হ্যান্ডলার
+const handleConfirmPurchase = async () => {
+    if (!product || !session?.user?.id) return;
+
     setIsProcessingOrder(true);
+
+    const orderData = {
+        userId: session.user.id,
+        userName: session.user.name,
+        userEmail: session.user.email,
+        productId: product._id,
+        title: product.title,
+        price: Number(product.price),
+        deliveryFee: Number(product.deliveryFee),
+        image: product.image,
+        color: selectedColor,
+        status: "Pending"
+    };
+
     try {
-      const response = await fetch(`${BACKEND_BASE_URL}/api/v1/deliveries`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          userId: session.user.id,
-          userName: session.user.name || "Anonymous User",
-          userEmail: session.user.email,
-          productId: product._id,
-          title: product.title,
-          price: Number(product.price),
-          deliveryFee: Number(product.deliveryFee || 0),
-          image: product.image,
-          color: selectedColor || "Default",
-        }),
-      });
-      if (response.ok) {
-        setShowReceipt(false);
-        triggerToast("Payment successful! Order logged under PENDING ledger.");
-      } else {
-        triggerToast("Error: Critical failure in order deployment.");
-      }
-    } catch (err) {
-      triggerToast("Error: Failed to secure transaction bridge.");
+        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/deliveries`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(orderData)
+        });
+
+        const result = await response.json();
+
+        if (result.success) {
+            alert("Order placed successfully!");
+            setShowReceipt(false);
+        } else {
+            throw new Error(result.error || "Failed to place order");
+        }
+    } catch (error) {
+        console.error("Order error:", error);
+        alert("Something went wrong. Please try again.");
     } finally {
-      setIsProcessingOrder(false);
+        setIsProcessingOrder(false);
     }
-  };
+};
 
   // 🛠️ স্ট্যাটাস পাবলিশ/আনপাবলিশ টগল লজিক ভাই
   const handleToggleStatus = async () => {

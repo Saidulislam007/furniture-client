@@ -1,5 +1,5 @@
 // src/services/furniture.ts
-const BACKEND_BASE_URL = process.env.BASE_URL ; 
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ; 
 export const sendFurnitureToBackend = async (payload: any): Promise<boolean> => {
   try {
     // 🔒 ব্রাউজারের localStorage থেকে ম্যানেজারের অ্যাক্সেস টোকেন তুলে নেওয়া হচ্ছে

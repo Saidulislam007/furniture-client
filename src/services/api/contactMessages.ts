@@ -8,7 +8,7 @@ interface ContactPayload {
 
 // 🎯 🚀 আপনার এক্সপ্রেস ব্যাকএন্ডের বেস ইউআরএল পোর্ট লক করুন এখানে ভাই
 // (যদি পোর্ট ৫০0০ না হয়ে অন্য কিছু হয়, তবে শুধু সংখ্যাটা চেঞ্জ করে দিন)
-const BACKEND_BASE_URL = process.env.BASE_URL ; 
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ; 
 
 
 

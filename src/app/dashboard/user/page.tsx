@@ -9,7 +9,7 @@ import { InvestmentCard } from '../../../components/dashboard/user/InvestmentCar
 import { ManifestCard } from '../../../components/dashboard/user/ManifestCard';
 import { WalletCard } from '../../../components/dashboard/user/WalletCard';
 import { InvestmentPieChart } from '@/components/dashboard/user/InvestmentPieChart';
-const BACKEND_BASE_URL = process.env.BASE_URL ;
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ;
 export default function OverviewPage() {
   // Better-Auth সেশন এক্সট্রাকশন
   const { data: session, isPending: isAuthPending } = authClient.useSession();
