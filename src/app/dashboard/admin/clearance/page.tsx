@@ -6,25 +6,15 @@ import { Boxes, AlertCircle, Edit3, Trash2, Eye, EyeOff, CheckCircle2, Loader2, 
 import { getAllFurniture } from '@/services/api/getFurniture';
 import { deleteFurnitureFromBackend } from '@/services/api/deleteFurniture';
 import { updateFurnitureInBackend } from '@/services/api/editFurniture';
+import type { Product } from "@/types/product";
 
-interface InventoryItem {
-  _id?: string;
-  sku?: string;
-  title: string;
-  image: string;
-  price: number; 
-  deliveryFee?: number; 
-  stock: number;
-  status: 'Pending Approval' | 'Published' | 'Unpublished';
-  material?: string;
-  category?: string;
-}
+
 
 // 🎯 প্রতি পেজে ঠিক ৭টি করে ক্লিয়ারেন্স আইটেম লক করা হলো ভাই!
 const ITEMS_PER_PAGE = 7;
 
 export default function AssetClearancePage() {
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [inventory, setInventory] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -33,7 +23,7 @@ export default function AssetClearancePage() {
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
   // এডিটিং প্যানেল স্টেট
-  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [editingItem, setEditingItem] = useState<Product | null>(null);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
   // প্যাজিনেশন কারেন্ট স্টেট নোড
@@ -100,7 +90,10 @@ export default function AssetClearancePage() {
     const itemToUpdate = inventory.find(item => item._id === id);
     if (!itemToUpdate) return;
     
-    const nextStatus = itemToUpdate.status === 'Published' ? 'Unpublished' : 'Published';
+    const nextStatus: Product["status"] =
+  itemToUpdate.status === "Published"
+    ? "Draft"
+    : "Published";
     
     const success = await updateFurnitureInBackend(id, { status: nextStatus });
     if (success) {
@@ -142,7 +135,7 @@ export default function AssetClearancePage() {
       price: Number(formData.get('price')),
       deliveryFee: Number(formData.get('deliveryFee')),
       stock: Number(formData.get('stock')),
-      status: formData.get('status') as InventoryItem['status']
+      status: formData.get('status') as Product['status']
     };
 
     const success = await updateFurnitureInBackend(editingItem._id, updatedPayload);
@@ -156,10 +149,10 @@ export default function AssetClearancePage() {
     setIsUpdating(false);
   };
 
-  const getStatusStyle = (status: InventoryItem['status']) => {
+  const getStatusStyle = (status: Product['status']) => {
     switch (status) {
       case 'Published': return 'bg-stone-900 text-stone-50 border-stone-950';
-      case 'Unpublished': return 'bg-stone-100 text-stone-600 border-stone-300';
+      case 'Draft': return 'bg-stone-100 text-stone-600 border-stone-300';
       case 'Pending Approval': return 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse';
       default: return 'bg-stone-100 text-stone-600';
     }
@@ -341,7 +334,9 @@ export default function AssetClearancePage() {
                         <div>{item.title}</div>
                         <div className="text-[10px] font-mono mt-0.5">
                           {item.stock > 0 ? (
-                            <span className="text-stone-400">{item.stock} units available {item.sku && `(SKU: ${item.sku})`}</span>
+                            <span className="text-stone-400">
+  {item.stock} units available
+</span>
                           ) : (
                             <span className="text-red-500 font-medium flex items-center gap-0.5">
                               <AlertCircle className="w-3 h-3" /> Out of Stock

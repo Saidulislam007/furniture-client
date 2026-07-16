@@ -6,36 +6,19 @@ import { AnimatePresence, motion } from "framer-motion";
 import { CheckCircle2, Loader2, ArrowLeft, Receipt, CreditCard, X, ShoppingBag, Truck, Edit3, Trash2, EyeOff, Eye, Star, User, AlertTriangle, Save } from "lucide-react";
 // Better-Auth ক্লায়েন্ট সেশন হুক
 import { authClient } from "@/lib/auth-client";
+import { Product } from "@/types/product";
 // এপিআই সার্ভিস মেথডসমূহ ইম্পোর্ট
 import { getAllFurniture } from '@/services/api/getFurniture';
+import { sendToDeliveriesBackend } from '@/services/api/postDelivery';
 // নতুন রিভিউ সার্ভিস ফাংশনটি ইম্পোর্ট করা হলো ভাই
 import { getProductReviewsFromBackend } from '@/services/api/reviewService';
 // কাস্টম মডুলার ফার্নিচার আপডেট সার্ভিস ফাংশনটি ইম্পোর্ট করা হলো ভাই
 import { updateFurnitureInBackend } from '@/services/api/furnitureService';
 
+
+const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ; 
 // 📑 প্রোডাক্ট টাইপ ডেফিনিশন
-export interface Product {
-  _id: string;
-  title: string;
-  price: number;
-  oldPrice?: number;
-  deliveryFee?: number;
-  rating: number;
-  reviewsCount: string;
-  image: string;
-  description: string;
-  category: string;
-  subCategory: string;
-  stock: number;
-  material: string;
-  warranty: string;
-  dimensions: { width: string; height: string; depth: string; };
-  colors: { name: string; hex: string }[];
-  status: "Published" | "Pending Approval";
-  managerId: string;
-  managerEmail: string;
-  createdAt: { $date: string } | string;
-}
+
 
 // 📑 রিভিউ টাইপ ডেফিনিশন
 interface ReviewItem {
@@ -56,7 +39,7 @@ export default function ProductDetailsPage() {
   const productId = params?.id as string;
 
   const { data: session, isPending: isAuthPending } = authClient.useSession();
-  
+
   // 🔐 ইউজারের রোল ডিটেকশন ভাই
   const userRole = (session?.user as any)?.role?.toLowerCase() || 'user';
   const isAdminOrManager = userRole === 'admin' || userRole === 'manager';
@@ -70,9 +53,9 @@ export default function ProductDetailsPage() {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [isAddingToCart, setIsAddingToCart] = useState<boolean>(false);
   const [isActionProcessing, setIsActionProcessing] = useState<boolean>(false);
-  
+
   const [showReceipt, setShowReceipt] = useState<boolean>(false);
-  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false); 
+  const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
   const [isProcessingOrder, setIsProcessingOrder] = useState<boolean>(false);
 
   // 📝 🚀 🟢 ইন-পেজ লাইভ এডিট ফর্ম ড্রয়ার স্টেটসমূহ ভাই
@@ -82,10 +65,10 @@ export default function ProductDetailsPage() {
   const [editDeliveryFee, setEditDeliveryFee] = useState<number>(0);
   const [editStock, setEditStock] = useState<number>(0);
   const [editStatus, setEditStatus] = useState<string>("Published");
-const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ; 
+  const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
   useEffect(() => {
-  console.log("Current Product ID from URL:", productId);
-}, [productId]);
+    console.log("Current Product ID from URL:", productId);
+  }, [productId]);
   // 📡 ১. প্রোডাক্ট লোড করার মাস্টার পাইপলাইন
   const fetchSingleProduct = async () => {
     try {
@@ -98,7 +81,7 @@ const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ;
       const contentType = response.headers.get("content-type");
       if (!response.ok || !contentType || !contentType.includes("application/json")) {
         console.warn("⚠️ Target furniture single node returned non-JSON html. Falling back to array filter mapping.");
-        const backupData: Product[] = await getAllFurniture();
+        const backupData = await getAllFurniture();
         if (backupData && Array.isArray(backupData)) {
           const foundBackup = backupData.find((p) => p._id === productId);
           if (foundBackup) initEditForm(foundBackup);
@@ -131,21 +114,21 @@ const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ;
     }
   };
 
- // 📡 ২. রিভিউ ফেচ লজিক - লুজ ম্যাচিং ফিক্সড
-const fetchProductReviews = async () => {
-  if (!productId) return;
-  try {
-    setReviewsLoading(true);
-    const data = await getProductReviewsFromBackend(productId);
-    
-    // data এখন সরাসরি অ্যারে হিসেবে আসবে (যেহেতু উপরে [] রিটার্ন করেছি)
-    setReviews(data || []); 
-  } catch (err) {
-    setReviews([]); 
-  } finally {
-    setReviewsLoading(false);
-  }
-};
+  // 📡 ২. রিভিউ ফেচ লজিক - লুজ ম্যাচিং ফিক্সড
+  const fetchProductReviews = async () => {
+    if (!productId) return;
+    try {
+      setReviewsLoading(true);
+      const data = await getProductReviewsFromBackend(productId);
+
+      // data এখন সরাসরি অ্যারে হিসেবে আসবে (যেহেতু উপরে [] রিটার্ন করেছি)
+      setReviews(data || []);
+    } catch (err) {
+      setReviews([]);
+    } finally {
+      setReviewsLoading(false);
+    }
+  };
 
   useEffect(() => {
     if (productId) {
@@ -200,61 +183,53 @@ const fetchProductReviews = async () => {
       setIsAddingToCart(false);
     }
   };
+  // ফিক্সড পেমেন্ট হ্যান্ডলার
+const handleConfirmPurchase = async (): Promise<void> => {
+  if (!session?.user?.id || !product) {
+    alert("Authentication Error: Session expired or product invalid.");
+    return;
+  }
 
-// ফিক্সড পেমেন্ট হ্যান্ডলার
-const handleConfirmPurchase = async () => {
-    if (!product || !session?.user?.id) return;
+  setIsProcessingOrder(true);
 
-    setIsProcessingOrder(true);
+  // কারেন্ট ইউজারের ডাটা সহ পে-লোড তৈরি
+  const orderData = {
+    userId: session.user.id,
+    userName: session.user.name || "Anonymous",
+    userEmail: session.user.email || "No Email",
+    productId: product._id,
+    title: product.title,
+    price: Number(product.price),
+    deliveryFee: Number(product.deliveryFee || 0),
+    image: product.image,
+    color: selectedColor || "Default",
+    createdAt: new Date().toISOString()
+  };
 
-    const orderData = {
-        userId: session.user.id,
-        userName: session.user.name,
-        userEmail: session.user.email,
-        productId: product._id,
-        title: product.title,
-        price: Number(product.price),
-        deliveryFee: Number(product.deliveryFee),
-        image: product.image,
-        color: selectedColor,
-        status: "Pending"
-    };
-
-    try {
-        const response = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/v1/deliveries`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderData)
-        });
-
-        const result = await response.json();
-
-        if (result.success) {
-            alert("Order placed successfully!");
-            setShowReceipt(false);
-        } else {
-            throw new Error(result.error || "Failed to place order");
-        }
-    } catch (error) {
-        console.error("Order error:", error);
-        alert("Something went wrong. Please try again.");
-    } finally {
-        setIsProcessingOrder(false);
-    }
+  try {
+    await sendToDeliveriesBackend(orderData);
+    alert("Order placed successfully!");
+    setShowReceipt(false);
+  } catch (error: any) {
+    console.error("Order error:", error);
+    alert("Order failed: " + (error.message || "Unknown error"));
+  } finally {
+    setIsProcessingOrder(false);
+  }
 };
 
   // 🛠️ স্ট্যাটাস পাবলিশ/আনপাবলিশ টগল লজিক ভাই
   const handleToggleStatus = async () => {
     if (!product) return;
     setIsActionProcessing(true);
-    
-    const cleanProductId = typeof product._id === 'object' && product._id !== null 
+
+    const cleanProductId = typeof product._id === 'object' && product._id !== null
       ? (product._id as any).$oid || (product._id as any).toString()
       : product._id;
 
     const currentStatusClean = product.status ? product.status.toLowerCase().trim() : "";
     const newStatus = currentStatusClean === "published" ? "Pending " : "Published";
-    
+
     try {
       const success = await updateFurnitureInBackend(cleanProductId, { status: newStatus });
       if (success) {
@@ -278,7 +253,7 @@ const handleConfirmPurchase = async () => {
     if (!product) return;
     setIsActionProcessing(true);
 
-    const cleanProductId = typeof product._id === 'object' && product._id !== null 
+    const cleanProductId = typeof product._id === 'object' && product._id !== null
       ? (product._id as any).$oid || (product._id as any).toString()
       : product._id;
 
@@ -301,7 +276,7 @@ const handleConfirmPurchase = async () => {
           stock: payload.stock,
           status: payload.status as any
         });
-        setShowEditDrawer(false); 
+        setShowEditDrawer(false);
         triggerToast("Asset blueprint synchronized and saved successfully.");
       } else {
         triggerToast("Failed to commit blueprint update to Express node.");
@@ -323,7 +298,7 @@ const handleConfirmPurchase = async () => {
         method: 'DELETE'
       });
       if (response.ok) {
-        setShowDeleteModal(false); 
+        setShowDeleteModal(false);
         triggerToast("Asset ledger purged successfully. Redirecting...");
         const targetDashboard = userRole === 'manager' ? '/dashboard/manager' : '/dashboard/admin';
         setTimeout(() => { router.push(targetDashboard); }, 2000);
@@ -352,11 +327,11 @@ const handleConfirmPurchase = async () => {
         {showEditDrawer && (
           <div className="fixed inset-0 z-50 flex justify-end bg-stone-900/40 backdrop-blur-xs">
             <div className="absolute inset-0" onClick={() => setShowEditDrawer(false)} />
-            
-            <motion.div 
-              initial={{ x: "100%" }} 
-              animate={{ x: 0 }} 
-              exit={{ x: "100%" }} 
+
+            <motion.div
+              initial={{ x: "100%" }}
+              animate={{ x: 0 }}
+              exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
               className="w-full max-w-md bg-white h-full relative z-10 shadow-2xl flex flex-col justify-between p-6 text-left"
             >
@@ -371,9 +346,9 @@ const handleConfirmPurchase = async () => {
                 <form onSubmit={handleSaveBlueprint} className="space-y-5 text-stone-700 font-sans">
                   <div className="space-y-1.5">
                     <label className="text-[10px] uppercase tracking-wider font-semibold text-stone-400">Asset Title</label>
-                    <input 
-                      type="text" 
-                      value={editTitle} 
+                    <input
+                      type="text"
+                      value={editTitle}
                       onChange={(e) => setEditTitle(e.target.value)}
                       className="w-full h-11 bg-stone-50 border border-stone-200 rounded-md px-3 text-sm font-light text-stone-900 focus:outline-hidden focus:border-stone-950 transition-colors"
                       required
@@ -383,9 +358,9 @@ const handleConfirmPurchase = async () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-[10px] uppercase tracking-wider font-semibold text-stone-400">Price (USD)</label>
-                      <input 
-                        type="number" 
-                        value={editPrice} 
+                      <input
+                        type="number"
+                        value={editPrice}
                         onChange={(e) => setEditPrice(Number(e.target.value))}
                         className="w-full h-11 bg-stone-50 border border-stone-200 rounded-md px-3 text-sm font-light text-stone-900 focus:outline-hidden focus:border-stone-950 transition-colors"
                         required
@@ -393,9 +368,9 @@ const handleConfirmPurchase = async () => {
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] uppercase tracking-wider font-semibold text-stone-400">Delivery Fee (USD)</label>
-                      <input 
-                        type="number" 
-                        value={editDeliveryFee} 
+                      <input
+                        type="number"
+                        value={editDeliveryFee}
                         onChange={(e) => setEditDeliveryFee(Number(e.target.value))}
                         className="w-full h-11 bg-stone-50 border border-stone-200 rounded-md px-3 text-sm font-light text-stone-900 focus:outline-hidden focus:border-stone-950 transition-colors"
                         required
@@ -406,9 +381,9 @@ const handleConfirmPurchase = async () => {
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1.5">
                       <label className="text-[10px] uppercase tracking-wider font-semibold text-stone-400">Stock Available</label>
-                      <input 
-                        type="number" 
-                        value={editStock} 
+                      <input
+                        type="number"
+                        value={editStock}
                         onChange={(e) => setEditStock(Number(e.target.value))}
                         className="w-full h-11 bg-stone-50 border border-stone-200 rounded-md px-3 text-sm font-light text-stone-900 focus:outline-hidden focus:border-stone-950 transition-colors"
                         required
@@ -416,8 +391,8 @@ const handleConfirmPurchase = async () => {
                     </div>
                     <div className="space-y-1.5">
                       <label className="text-[10px] uppercase tracking-wider font-semibold text-stone-400">Clearance Status Override</label>
-                      <select 
-                        value={editStatus} 
+                      <select
+                        value={editStatus}
                         onChange={(e) => setEditStatus(e.target.value)}
                         className="w-full h-11 bg-stone-50 border border-stone-200 rounded-md px-3 text-sm font-light text-stone-900 focus:outline-hidden focus:border-stone-950 transition-colors appearance-none cursor-pointer"
                       >
@@ -431,14 +406,14 @@ const handleConfirmPurchase = async () => {
               </div>
 
               <div className="absolute bottom-0 left-0 right-0 p-6 bg-white border-t border-stone-100 flex gap-3">
-                <button 
-                  type="button" 
-                  onClick={() => setShowEditDrawer(false)} 
+                <button
+                  type="button"
+                  onClick={() => setShowEditDrawer(false)}
                   className="flex-1 h-12 border border-stone-200 text-stone-700 text-xs uppercase tracking-wider font-medium rounded-lg hover:bg-stone-50 transition-colors"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={handleSaveBlueprint}
                   disabled={isActionProcessing}
                   className="flex-1 h-12 bg-stone-950 text-white text-xs uppercase tracking-wider font-medium rounded-lg hover:bg-stone-800 transition-all flex items-center justify-center gap-2 shadow-md"
@@ -521,20 +496,20 @@ const handleConfirmPurchase = async () => {
 
           <div className="flex flex-col h-full text-left">
             <div className="flex items-center justify-between gap-2 mb-2">
-              <span className="text-[10px] uppercase font-mono tracking-widest text-amber-800 bg-amber-50 px-2.5 py-1 rounded-sm border border-amber-100">{product?.category} / {product?.subCategory}</span>
+              <span className="text-[10px] uppercase font-mono tracking-widest text-amber-800 bg-amber-50 px-2.5 py-1 rounded-sm border border-amber-100">{product?.category}</span>
               <div className="flex items-center gap-2">
                 <span className={`text-[10px] uppercase font-mono tracking-wider px-2 py-1 rounded-sm border bg-stone-950 text-white border-stone-900`}>Status: {product?.status}</span>
-                <span className={`text-[10px] uppercase font-mono tracking-wider px-2 py-1 rounded-sm border ${product && product.stock > 0 ? "bg-emerald-50 text-emerald-800 border-emerald-100" : "bg-rose-50 text-rose-800 border-rose-100"}`}>{product && product.stock > 0 ? `In Stock (${product.stock})` : "Out of Stock"}</span>
+                <span className={`text-[10px] uppercase font-mono tracking-wider px-2 py-1 rounded-sm border ${product && product && (product.stock ?? 0) > 0 ? "bg-emerald-50 text-emerald-800 border-emerald-100" : "bg-rose-50 text-rose-800 border-rose-100"}`}>{product && product && (product.stock ?? 0) > 0? `In Stock (${product.stock})` : "Out of Stock"}</span>
               </div>
             </div>
 
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-medium text-gray-900 tracking-tight mb-4">{product?.title}</h1>
-            
+
             {/* Rating Meta Info */}
             <div className="flex items-center gap-2 mb-6">
               <div className="flex items-center gap-0.5">
                 {[...Array(5)].map((_, i) => (
-                  <Star key={i} className={`w-4 h-4 ${product && i < Math.floor(product.rating) ? "text-stone-950 fill-stone-950" : "text-gray-300"}`} />
+                  <Star key={i} className={`w-4 h-4 ${product && i < Math.floor(product.rating ?? 0) ? "text-stone-950 fill-stone-950" : "text-gray-300"}`} />
                 ))}
               </div>
               <span className="text-sm font-medium text-gray-900 mt-0.5">{product?.rating}</span>
@@ -566,7 +541,7 @@ const handleConfirmPurchase = async () => {
               <div className="flex items-baseline gap-2 mb-3"><h3 className="text-sm font-bold text-gray-900 uppercase tracking-wider">Colors Configuration</h3></div>
               <div className="flex items-center gap-3">
                 {product?.colors?.map((color) => (
-                  <button key={color.name} onClick={() => setSelectedColor(color.name)} className={`w-8 h-8 rounded-full border transition-all ${selectedColor === color.name ? "border-gray-900 scale-110" : "border-transparent"}`} style={{ backgroundColor: color.hex }} title={color.name}>
+                  <button key={color.name} onClick={() => setSelectedColor(color.name)} className={`w-8 h-8 rounded-full border transition-all ${selectedColor === color.name ? "border-gray-900 scale-110" : "border-transparent"}`} style={{ backgroundColor: color.value }} title={color.name}>
                     {selectedColor === color.name && <span className="w-2 h-2 rounded-full bg-white block mx-auto mt-2.5 mix-blend-difference" />}
                   </button>
                 ))}
@@ -577,21 +552,20 @@ const handleConfirmPurchase = async () => {
             <div className="mt-auto pt-4">
               {isAdminOrManager ? (
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 bg-white/80 border border-stone-200 p-4 rounded-xl shadow-xs">
-                  <button 
-                    onClick={() => setShowEditDrawer(true)} 
+                  <button
+                    onClick={() => setShowEditDrawer(true)}
                     className="h-12 bg-stone-900 hover:bg-stone-800 text-white text-xs uppercase tracking-wider font-medium rounded-lg flex items-center justify-center gap-1.5 transition-all"
                   >
                     <Edit3 className="w-3.5 h-3.5" /> Edit Spec
                   </button>
 
-                  <button 
-                    onClick={handleToggleStatus} 
-                    disabled={isActionProcessing} 
-                    className={`h-12 border text-xs uppercase tracking-wider font-medium rounded-lg flex items-center justify-center gap-1.5 transition-all ${
-                      product?.status?.toLowerCase().trim() === "published" 
-                        ? "border-amber-600 text-amber-800 hover:bg-amber-50" 
+                  <button
+                    onClick={handleToggleStatus}
+                    disabled={isActionProcessing}
+                    className={`h-12 border text-xs uppercase tracking-wider font-medium rounded-lg flex items-center justify-center gap-1.5 transition-all ${product?.status?.toLowerCase().trim() === "published"
+                        ? "border-amber-600 text-amber-800 hover:bg-amber-50"
                         : "border-emerald-600 text-emerald-800 hover:bg-emerald-50"
-                    }`}
+                      }`}
                   >
                     {isActionProcessing ? (
                       <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -609,7 +583,7 @@ const handleConfirmPurchase = async () => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <button onClick={() => { if(!session) { triggerToast("Authentication Required: Please log in to complete purchase."); } else { setShowReceipt(true); } }} disabled={product?.stock === 0} className="w-full bg-[#111827] hover:bg-black text-white text-sm font-medium py-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:bg-gray-300">
+                  <button onClick={() => { if (!session) { triggerToast("Authentication Required: Please log in to complete purchase."); } else { setShowReceipt(true); } }} disabled={product?.stock === 0} className="w-full bg-[#111827] hover:bg-black text-white text-sm font-medium py-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:bg-gray-300">
                     <ShoppingBag className="w-4 h-4" /> Buy Now
                   </button>
                   <button onClick={handleAddToCart} disabled={product?.stock === 0 || isAddingToCart} className="w-full bg-white hover:bg-gray-50 text-gray-900 text-sm font-medium py-4 rounded-xl border border-gray-200 shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:text-gray-400">
@@ -624,38 +598,38 @@ const handleConfirmPurchase = async () => {
 
         {/* ─── 📊 লাইভ রিভিউ সেকশন প্যানেল ─── */}
         <section className="mt-16 pt-12 border-t border-stone-200/60 text-left">
-  <div className="flex items-center justify-between mb-8">
-    <h2 className="font-serif text-xl sm:text-2xl text-stone-900">Customer Ledger Narratives</h2>
-    <span className="text-xs font-mono bg-stone-900 text-white px-3 py-1 rounded-xs">{reviews.length} Logs</span>
-  </div>
-
-  {reviewsLoading ? (
-    <div className="py-10 text-center"><Loader2 className="animate-spin mx-auto" /></div>
-  ) : reviews.length === 0 ? (
-    <div className="py-12 text-center bg-white/40 border rounded-xl">
-      <p className="font-serif text-sm text-stone-400 italic">No validated narratives logged for this product.</p>
-    </div>
-  ) : (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {reviews.map((review, idx) => (
-        <motion.div key={idx} className="bg-white border p-5 rounded-xl flex gap-4">
-          <div className="w-9 h-9 rounded-full bg-stone-950 text-white flex items-center justify-center font-mono text-xs">
-            {review.userName?.charAt(0).toUpperCase() || "U"}
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="font-serif text-xl sm:text-2xl text-stone-900">Customer Ledger Narratives</h2>
+            <span className="text-xs font-mono bg-stone-900 text-white px-3 py-1 rounded-xs">{reviews.length} Logs</span>
           </div>
-          <div>
-            <h5 className="text-xs font-semibold">{review.userName}</h5>
-            <p className="text-xs text-stone-600 mt-1">"{review.comment}"</p>
-            <div className="flex mt-2">
-              {[...Array(5)].map((_, i) => (
-                <Star key={i} className={`w-3 h-3 ${i < review.rating ? "text-stone-950 fill-stone-950" : "text-stone-200"}`} />
+
+          {reviewsLoading ? (
+            <div className="py-10 text-center"><Loader2 className="animate-spin mx-auto" /></div>
+          ) : reviews.length === 0 ? (
+            <div className="py-12 text-center bg-white/40 border rounded-xl">
+              <p className="font-serif text-sm text-stone-400 italic">No validated narratives logged for this product.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {reviews.map((review, idx) => (
+                <motion.div key={idx} className="bg-white border p-5 rounded-xl flex gap-4">
+                  <div className="w-9 h-9 rounded-full bg-stone-950 text-white flex items-center justify-center font-mono text-xs">
+                    {review.userName?.charAt(0).toUpperCase() || "U"}
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-semibold">{review.userName}</h5>
+                    <p className="text-xs text-stone-600 mt-1">"{review.comment}"</p>
+                    <div className="flex mt-2">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className={`w-3 h-3 ${i < review.rating ? "text-stone-950 fill-stone-950" : "text-stone-200"}`} />
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
               ))}
             </div>
-          </div>
-        </motion.div>
-      ))}
-    </div>
-  )}
-</section>
+          )}
+        </section>
 
       </div>
     </main>

@@ -5,36 +5,12 @@ import Link from 'next/link';
 import { Search, SlidersHorizontal, Sliders, RotateCcw, ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
 // 🎯 🚀 আপনার প্রজেক্টের মেইন সার্ভিস ফাংশন
 import { getAllFurniture } from '@/services/api/getFurniture';
+import type { Product } from "@/types/product";
 
 // ==========================================
 // 📑 1. Types Definition
 // ==========================================
-export interface Product {
-  _id: string; 
-  title: string;
-  price: number;
-  oldPrice?: number;
-  deliveryFee?: number;
-  rating: number;
-  reviewsCount: string;
-  image: string;
-  description: string;
-  category: string;
-  subCategory: string;
-  stock: number;
-  material: string;
-  warranty: string;
-  dimensions: {
-    width: string;
-    height: string;
-    depth: string;
-  };
-  colors: { name: string; hex: string }[];
-  status: "Published" | "Draft"; 
-  managerId: string;
-  managerEmail: string;
-  createdAt: { $date: string } | string;
-}
+
 
 // 🎯 🚀 প্রতি পেজে ঠিক ৬টি প্রোডাক্ট লক করা হলো ভাই (এর বেশি এক পেজে দেখাবে না)
 const ITEMS_PER_PAGE = 6;
@@ -44,7 +20,7 @@ const ITEMS_PER_PAGE = 6;
 // ==========================================
 const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, index }) => {
   return (
-    <Link 
+    <Link
       href={`/products/${product._id}`}
       className="group flex flex-col h-full cursor-pointer transition-all duration-700 ease-out"
       style={{
@@ -75,7 +51,7 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
         <h3 className="text-base font-serif font-medium text-gray-900 tracking-wide mb-1.5 transition-colors duration-500 group-hover:text-amber-800">
           {product.title}
         </h3>
-        
+
         <div className="flex items-center gap-2 mb-2">
           <p className="text-sm font-bold text-gray-950">${product.price}</p>
           {product.oldPrice && (
@@ -93,12 +69,12 @@ const ProductCard: React.FC<{ product: Product; index: number }> = ({ product, i
         <div
           className="mt-auto w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-gray-700 transition-all duration-500 group-hover:bg-gray-900 group-hover:border-gray-900 group-hover:text-white"
         >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            fill="none" 
-            viewBox="0 0 24 24" 
-            strokeWidth="1.5" 
-            stroke="currentColor" 
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            strokeWidth="1.5"
+            stroke="currentColor"
             className="w-3.5 h-3.5 transition-transform duration-500 ease-out group-hover:translate-x-1.5"
           >
             <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
@@ -133,7 +109,7 @@ function ShopPage() {
     try {
       setLoading(true);
       setError(null);
-      const data: Product[] = await getAllFurniture();
+      const data = await getAllFurniture();
 
       if (!data || !Array.isArray(data)) {
         throw new Error('Invalid architecture token or specs pool empty.');
@@ -164,7 +140,7 @@ function ShopPage() {
     if (selectedCategory === 'All') return ['All'];
     return ['All', ...Array.from(new Set(products.filter(p => p.category === selectedCategory).map(p => p.subCategory)))];
   }, [products, selectedCategory]);
-  
+
   const colors = useMemo(() => {
     const allColors = products.flatMap(p => p.colors?.map(c => c.name) || []);
     return ['All', ...Array.from(new Set(allColors))];
@@ -176,17 +152,17 @@ function ShopPage() {
 
     if (searchQuery.trim() !== '') {
       const query = searchQuery.toLowerCase();
-      result = result.filter(p => 
-        p.title.toLowerCase().includes(query) || 
+      result = result.filter(p =>
+        p.title.toLowerCase().includes(query) ||
         p.description.toLowerCase().includes(query) ||
-        p.material.toLowerCase().includes(query)
+        p.material?.toLowerCase().includes(query)
       );
     }
 
     if (selectedCategory !== 'All') result = result.filter(p => p.category === selectedCategory);
     if (selectedSubCategory !== 'All') result = result.filter(p => p.subCategory === selectedSubCategory);
     if (selectedColor !== 'All') result = result.filter(p => p.colors?.some(c => c.name === selectedColor));
-    
+
     result = result.filter(p => p.price <= priceRange);
 
     if (sortBy === 'price-low') result.sort((a, b) => a.price - b.price);
@@ -198,7 +174,7 @@ function ShopPage() {
 
   // 🚀 🟢 ক্যালকুলেশন: ফিল্টার হওয়া মোট প্রোডাক্টকে প্রতি পেজের সাইজ (৬) দিয়ে ভাগ
   const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
-  
+
   // 🚀 🟢 কারেন্ট পেজ অনুযায়ী ঠিক ৬টি প্রোডাক্ট কেটে বের করা (Slice)
   const paginatedProducts = useMemo(() => {
     const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -236,7 +212,8 @@ function ShopPage() {
 
   return (
     <main className="min-h-screen bg-[#f4f0eb] pt-20 sm:pt-24 overflow-x-hidden">
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes fadeInUp {
           from { opacity: 0; transform: translateY(20px); }
           to { opacity: 1; transform: translateY(0); }
@@ -244,7 +221,7 @@ function ShopPage() {
       `}} />
 
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 md:px-12 xl:px-16 py-8">
-        
+
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-8">
           <div>
@@ -285,7 +262,7 @@ function ShopPage() {
               <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400 pointer-events-none" />
             </div>
 
-            <button 
+            <button
               onClick={() => setShowMobileFilters(!showMobileFilters)}
               className="w-1/2 md:w-auto h-11 px-5 bg-stone-950 text-white hover:bg-stone-800 text-xs uppercase tracking-widest font-medium rounded-xl flex items-center justify-center gap-2 transition-colors duration-200"
             >
@@ -304,10 +281,12 @@ function ShopPage() {
                 {categories.map((cat) => (
                   <button
                     key={cat}
-                    onClick={() => { setSelectedCategory(cat); setSelectedSubCategory('All'); }}
-                    className={`px-3 py-1.5 text-xs rounded-lg border transition-all ${
-                      selectedCategory === cat ? 'bg-stone-950 text-white border-stone-950 font-medium' : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'
-                    }`}
+                    onClick={() => {
+                      setSelectedCategory(cat ?? "All");
+                      setSelectedSubCategory("All");
+                    }}
+                    className={`px-3 py-1.5 text-xs rounded-lg border transition-all ${selectedCategory === cat ? 'bg-stone-950 text-white border-stone-950 font-medium' : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'
+                      }`}
                   >
                     {cat}
                   </button>
@@ -322,10 +301,9 @@ function ShopPage() {
                   {subCategories.map((sub) => (
                     <button
                       key={sub}
-                      onClick={() => setSelectedSubCategory(sub)}
-                      className={`px-3 py-1.5 text-xs rounded-lg border transition-all ${
-                        selectedSubCategory === sub ? 'bg-amber-800 text-white border-amber-800 font-medium' : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'
-                      }`}
+                      onClick={() => setSelectedSubCategory(sub ?? "All")}
+                      className={`px-3 py-1.5 text-xs rounded-lg border transition-all ${selectedSubCategory === sub ? 'bg-amber-800 text-white border-amber-800 font-medium' : 'bg-stone-50 text-stone-600 border-stone-200 hover:bg-stone-100'
+                        }`}
                     >
                       {sub}
                     </button>
@@ -406,11 +384,10 @@ function ShopPage() {
                     <button
                       key={pageNum}
                       onClick={() => setCurrentPage(pageNum)}
-                      className={`w-9 h-9 rounded-xl text-center flex items-center justify-center transition-all border ${
-                        currentPage === pageNum
+                      className={`w-9 h-9 rounded-xl text-center flex items-center justify-center transition-all border ${currentPage === pageNum
                           ? 'bg-stone-950 text-white border-stone-950 font-bold shadow-xs'
                           : 'bg-white text-stone-600 border-stone-200 hover:bg-stone-50'
-                      }`}
+                        }`}
                     >
                       {pageNum}
                     </button>

@@ -50,9 +50,7 @@ export default function RegisterPage() {
         setIsLoading(false);
       } else {
         // 🚀 ফোর্সড সাইন-আউট
-        await authClient.signOut({
-          redirect: false 
-        });
+        await authClient.signOut();
 
         setServerSuccess('Account created successfully! Redirecting to login page...');
         

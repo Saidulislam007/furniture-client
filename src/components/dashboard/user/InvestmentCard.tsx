@@ -6,8 +6,11 @@ import { ShoppingBag, Loader2 } from 'lucide-react';
 import { authClient } from '@/lib/auth-client';
 // 🚀 🟢 আপনার তৈরি করা গ্লোবাল ডেলিভারি গেট সার্ভিস এপিআই ইম্পোর্ট
 import { getAllDeliveriesFromBackend } from '@/services/api/getAllDeliveries';
+interface InvestmentCardProps {
+  value: string;
+}
 
-export const InvestmentCard: React.FC = () => {
+export const InvestmentCard: React.FC<InvestmentCardProps> = ({ value })  => {
   // Better-Auth সেশন এক্সট্রাকশন
   const { data: session, isPending: isAuthPending } = authClient.useSession();
 

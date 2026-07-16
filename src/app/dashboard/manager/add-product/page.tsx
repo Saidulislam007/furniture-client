@@ -7,9 +7,10 @@ import { PlusCircle, Image as ImageIcon, Save, Palette, Trash2, Loader2, CheckCi
 import { sendFurnitureToBackend } from '@/services/furniture';
 import { authClient } from "@/lib/auth-client";
 
+
 interface ColorOption {
   name: string;
-  hex: string;
+  value: string;
 }
 
 export default function AddProductNodePage() {
@@ -32,7 +33,7 @@ export default function AddProductNodePage() {
     e.preventDefault(); 
     e.stopPropagation();
     if (!colorName.trim()) return;
-    setColors((prevColors) => [...prevColors, { name: colorName, hex: colorHex }]);
+    setColors((prevColors) => [...prevColors, { name: colorName, value: colorHex }]);
     setColorName('');
   };
 
@@ -190,7 +191,7 @@ export default function AddProductNodePage() {
               <div className="flex flex-wrap gap-2 pt-2 border-t border-stone-100">
                 {colors.map((color, idx) => (
                   <div key={idx} className="flex items-center gap-2 bg-white px-2 py-1 border border-stone-200 rounded-sm text-[11px]">
-                    <span className="w-3 h-3 rounded-full border border-stone-100" style={{ backgroundColor: color.hex }} />
+                    <span className="w-3 h-3 rounded-full border border-stone-100" style={{ backgroundColor: color.value }} />
                     <span>{color.name}</span>
                     <button type="button" onClick={() => handleRemoveColor(idx)} className="text-stone-400 hover:text-red-600 transition-colors ml-1">
                       <Trash2 className="w-3 h-3" />

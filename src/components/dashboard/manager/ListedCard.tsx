@@ -3,9 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { Archive, Loader2 } from 'lucide-react';
 // 🚀 🟢 আপনার তৈরি করা ফার্নিচার গেট সার্ভিস এপিআই ইম্পোর্ট (পাথ আপনার প্রজেক্ট অনুযায়ী ফিক্স করে নিবেন ভাই)
-import { getAllFurniture } from '@/services/api/getFurniture'; 
+import { getAllFurniture } from '@/services/api/getFurniture';
 
-export function ListedCard() {
+interface ListedCardProps {
+  count: number;
+}
+
+export function ListedCard({ count }: ListedCardProps) {
   // লাইভ কাউন্টিং ও ইন্টারনাল লোডিং স্টেটস
   const [totalCount, setTotalCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);

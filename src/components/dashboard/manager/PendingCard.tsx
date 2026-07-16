@@ -5,7 +5,11 @@ import { Clock, Loader2 } from 'lucide-react';
 // 🚀 🟢 আপনার তৈরি করা ফার্নিচার গেট সার্ভিস এপিআই ইম্পোর্ট
 import { getAllFurniture } from '@/services/api/getFurniture'; 
 
-export function PendingCard() {
+interface PendingCardProps {
+  count: number;
+}
+
+export function PendingCard({ count }: PendingCardProps) {
   // লাইভ পেন্ডিং কাউন্টিং ও ইন্টারনাল লোডিং স্টেটস
   const [pendingCount, setPendingCount] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);

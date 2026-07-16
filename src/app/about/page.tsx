@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from "framer-motion";
 
 // --- Types & Interfaces ---
 interface TeamMember {
@@ -54,7 +54,7 @@ const valuesData: ValueItem[] = [
 ];
 
 // --- Animation Variants ---
-const fadeInContainer = {
+const fadeInContainer: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -62,7 +62,7 @@ const fadeInContainer = {
   }
 };
 
-const fadeInUp = {
+const fadeInUp: Variants  = {
   hidden: { opacity: 0, y: 30 },
   visible: { 
     opacity: 1, 

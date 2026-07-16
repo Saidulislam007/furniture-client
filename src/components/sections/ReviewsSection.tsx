@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 
 // --- Types & Interfaces ---
 interface ReviewItemProps {
@@ -24,13 +24,19 @@ const containerVariants = {
   }
 };
 
-const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] } 
-  }
+const cardVariants: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 30,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+    },
+  },
 };
 
 // --- Sub-component: Individual Review Card ---
@@ -38,7 +44,10 @@ const ReviewCard: React.FC<{ review: ReviewItemProps; index: number }> = ({ revi
   return (
     <motion.div
       variants={cardVariants}
-      whileHover={{ y: -4, shadow: '0 10px 30px -15px rgba(0,0,0,0.1)' }}
+      whileHover={{
+        y: -4,
+        boxShadow: "0 10px 30px -15px rgba(0,0,0,0.1)",
+      }}
       className="flex flex-col justify-between p-6 sm:p-8 bg-white border border-stone-200/60 rounded-sm shadow-sm hover:border-amber-700/40 transition-all duration-300"
     >
       <div className="space-y-4">
@@ -51,7 +60,7 @@ const ReviewCard: React.FC<{ review: ReviewItemProps; index: number }> = ({ revi
               </svg>
             ))}
           </div>
-          
+
           <span className="inline-block px-2.5 py-0.5 text-[9px] font-sans uppercase tracking-widest bg-stone-50 text-stone-500 border border-stone-200/40 rounded-sm">
             {review.projectName}
           </span>
@@ -66,10 +75,10 @@ const ReviewCard: React.FC<{ review: ReviewItemProps; index: number }> = ({ revi
       {/* User Info Signature Footer with Profile Pic */}
       <div className="border-t border-stone-100 pt-5 mt-6 flex items-center space-x-4 font-sans text-xs">
         <div className="relative w-10 h-10 overflow-hidden rounded-full border border-stone-200">
-          <img 
-            src={review.avatar} 
-            alt={review.name} 
-            className="w-full h-full object-cover mix-blend-luminosity hover:mix-blend-normal transition-all duration-300" 
+          <img
+            src={review.avatar}
+            alt={review.name}
+            className="w-full h-full object-cover mix-blend-luminosity hover:mix-blend-normal transition-all duration-300"
           />
         </div>
         <div className="leading-tight">
@@ -113,7 +122,7 @@ export default function ReviewsSection() {
   return (
     <section className="w-full bg-stone-50 py-16 sm:py-24 xl:py-32 border-b border-stone-200 overflow-hidden font-serif">
       <div className="max-w-[1920px] mx-auto px-4 sm:px-8 md:px-12 lg:px-16 xl:px-24">
-        
+
         {/* Premium Header Layout */}
         <div className="mb-12 sm:mb-16 md:mb-20 text-center space-y-2 max-w-2xl mx-auto">
           <p className="text-[10px] sm:text-xs font-sans tracking-[0.3em] uppercase text-amber-700 font-semibold">
@@ -126,7 +135,7 @@ export default function ReviewsSection() {
         </div>
 
         {/* 100% Responsive Grid Config Mapping with Framer Motion Stagger */}
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           initial="hidden"
           whileInView="visible"

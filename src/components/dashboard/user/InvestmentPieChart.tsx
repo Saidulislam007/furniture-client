@@ -46,7 +46,7 @@ export const InvestmentPieChart: React.FC = () => {
             if (isDelivered && isIdMatched && isEmailMatched && isNameMatched) {
               // 🎯 ফিক্স: ডাটাবেজের যেকোনো একটি নাম ফিল্ড (productName, title, category) খুঁজে বের করবে
               const rawName = item.productName || item.title || item.category || "Curated Asset";
-              
+
               // নামটিকে সুন্দরভাবে ট্রিম করে নিচ্ছি ভাই
               const formattedName = rawName.trim();
               const price = Number(item.price || 0);
@@ -77,7 +77,7 @@ export const InvestmentPieChart: React.FC = () => {
   }, [session, isAuthPending]);
 
   return (
-    <motion.div 
+    <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
       className="bg-white border border-stone-200/60 p-6 rounded-sm shadow-sm flex flex-col justify-between transition-all duration-300 hover:shadow-md min-h-[400px] w-full"
@@ -122,18 +122,15 @@ export const InvestmentPieChart: React.FC = () => {
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
-              <Tooltip 
-                formatter={(value: number) => [`$${value.toLocaleString(undefined, { minimumFractionDigits: 2 })}`, 'Total Invested']}
-                contentStyle={{ 
-                  backgroundColor: '#1c1917', 
-                  color: '#fff', 
-                  borderRadius: '2px', 
-                  fontSize: '11px',
-                  fontFamily: 'monospace',
-                  border: 'none'
-                }} 
+              <Tooltip
+                formatter={(value) => [
+                  `$${Number(value ?? 0).toLocaleString(undefined, {
+                    minimumFractionDigits: 2,
+                  })}`,
+                  "Investment",
+                ]}
               />
-              <Legend 
+              <Legend
                 iconSize={8}
                 iconType="circle"
                 layout="horizontal"

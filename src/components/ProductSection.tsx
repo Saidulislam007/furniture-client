@@ -4,26 +4,20 @@ import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 // 🎯 🚀 আপনার প্রজেক্টের মেইন সার্ভিস ফাংশন
 import { getAllFurniture } from '@/services/api/getFurniture';
+import type { Product } from "@/types/product";
 
 // ==========================================
 // 📑 1. Types Definition
 // ==========================================
-export interface Product {
-  _id: string; 
-  title: string;
-  price?: number;
-  oldPrice?: number;
-  rating?: number;
-  image: string;
-  description?: string;
-  status: "Published" | "Draft"; 
-  category?: string;
-  subCategory?: string;
-}
+
 
 interface ProductSectionProps {
   title: string;
-  subtitle?: string;
+  subtitle: string;
+  products: Product[];
+  isLoading: boolean;
+  onAddToCart: (product: Product) => void;
+  onViewDetails: (id: string) => void;
 }
 
 // ==========================================
@@ -48,7 +42,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
   return (
     // 🚀 ১০০% রেসপন্সিভ উইডথ চ্যাসিস ম্যাট্রিক্স (320px থেকে 1920px পর্যন্ত লক)
     <div className="w-[260px] small-mobile:w-[280px] mobile:w-[310px] tablet:w-[340px] laptop:w-[380px] desktop:w-[420px] shrink-0 px-3 sm:px-4">
-      <Link 
+      <Link
         href="/products"
         className="group flex flex-col h-full cursor-pointer transition-all duration-700 ease-out"
       >
@@ -68,7 +62,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
           <h3 className="text-base sm:text-lg font-serif font-medium text-gray-900 tracking-wide mb-1 transition-colors duration-500 group-hover:text-amber-800 line-clamp-1">
             {product.title}
           </h3>
-          
+
           {product.price && (
             <p className="text-sm font-bold text-gray-950 mb-1">${product.price}</p>
           )}
@@ -83,12 +77,12 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
           <div
             className="mt-auto w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-gray-700 transition-all duration-500 group-hover:bg-gray-900 group-hover:border-gray-900 group-hover:text-white"
           >
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              fill="none" 
-              viewBox="0 0 24 24" 
-              strokeWidth="1.5" 
-              stroke="currentColor" 
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              strokeWidth="1.5"
+              stroke="currentColor"
               className="w-3.5 h-3.5 transition-transform duration-500 ease-out group-hover:translate-x-1.5"
             >
               <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
@@ -103,21 +97,32 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
 // ==========================================
 // 🌐 4. Main Component: Product Section (Exported)
 // ==========================================
-export const ProductSection: React.FC<ProductSectionProps> = ({ title, subtitle }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
+export const ProductSection: React.FC<ProductSectionProps> = ({
+  title,
+  subtitle,
+  
+
+  onAddToCart,
+  onViewDetails,
+}) => {
+
   const [error, setError] = useState<string | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [products, setFurniture] = useState<Product[]>([]);
 
   useEffect(() => {
     const loadPublishedFurniture = async () => {
       try {
         setIsLoading(true);
         setError(null);
-        const data: Product[] = await getAllFurniture();
+        const data = await getAllFurniture();
 
         if (data && Array.isArray(data)) {
-          const publishedData = data.filter((product) => product.status === "Published");
-          setProducts(publishedData);
+          const publishedData = data.filter(
+            (product) => product.status === "Published"
+          );
+
+          setFurniture(publishedData);
         }
       } catch (err: any) {
         console.error("❌ Failed to resolve home content grid nodes:", err);
@@ -137,9 +142,10 @@ export const ProductSection: React.FC<ProductSectionProps> = ({ title, subtitle 
 
   return (
     <section className="w-full py-16 md:py-24 bg-[#f4f0eb] overflow-hidden select-none">
-      
+
       {/* 🔮 আলটিমেট সিএসএস আর্কিটেকচারাল ইঞ্জিন (Pure CSS Marquee Infrastructure) */}
-      <style dangerouslySetInnerHTML={{__html: `
+      <style dangerouslySetInnerHTML={{
+        __html: `
         @keyframes marquee {
           0% { transform: translateX(0); }
           100% { transform: translateX(-33.3333%); }
@@ -161,7 +167,7 @@ export const ProductSection: React.FC<ProductSectionProps> = ({ title, subtitle 
       `}} />
 
       <div className="max-w-[1920px] mx-auto">
-        
+
         {/* Header Layout */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-12 md:mb-16 px-6 sm:px-8 md:px-12 xl:px-16">
           <div className="max-w-xl text-left">

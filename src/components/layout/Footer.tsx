@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion ,Variants } from 'framer-motion';
 
 // --- Types & Interfaces ---
 interface SocialItem {
@@ -19,7 +19,7 @@ const socialLinks: SocialItem[] = [
 ];
 
 // --- Animation Variants ---
-const footerContainerVariants = {
+const footerContainerVariants: Variants = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
@@ -30,13 +30,19 @@ const footerContainerVariants = {
   }
 };
 
-const fadeInUpVariant = {
-  hidden: { opacity: 0, y: 35 },
-  visible: { 
-    opacity: 1, 
-    y: 0, 
-    transition: { duration: 0.8, ease: [0.215, 0.610, 0.355, 1.000] } 
-  }
+const fadeInUpVariant: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 40,
+  },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+      ease: [0.25, 0.1, 0.25, 1],
+    },
+  },
 };
 
 export default function Footer() {

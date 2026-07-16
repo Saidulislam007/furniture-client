@@ -75,7 +75,7 @@ export default function AccountMenu({ session, onSignOut }: AccountMenuProps) {
               Logged in as <span className="font-semibold block truncate text-stone-800">{session.email}</span>
             </div>
             
-            <Link href={`/dashboard/${session.role.toLowerCase()}`} className="block px-4 py-2.5 text-sm hover:bg-stone-50 transition-colors focus:bg-stone-50 focus:outline-none">
+            <Link href={`/dashboard/${(session.role ?? "USER").toLowerCase()}`} className="block px-4 py-2.5 text-sm hover:bg-stone-50 transition-colors focus:bg-stone-50 focus:outline-none">
               Control Panel
             </Link>
             <Link href="/dashboard/orders" className="block px-4 py-2.5 text-sm hover:bg-stone-50 transition-colors focus:bg-stone-50 focus:outline-none">

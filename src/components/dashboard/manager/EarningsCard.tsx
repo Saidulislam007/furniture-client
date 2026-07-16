@@ -4,8 +4,11 @@ import React, { useState, useEffect } from 'react';
 import { DollarSign, Loader2 } from 'lucide-react';
 // 🚀 🟢 আপনার তৈরি করা গ্লোবাল ডেলিভারি গেট সার্ভিস এপিআই ইম্পোর্ট
 import { getAllDeliveriesFromBackend } from '@/services/api/getAllDeliveries';
+interface EarningsCardProps {
+  amount: number;
+}
 
-export function EarningsCard() {
+export function EarningsCard({ amount }: EarningsCardProps) {
   // লাইভ আর্নিংস ক্যালকুলেশন ও লোডিং স্টেটস
   const [totalEarnings, setTotalEarnings] = useState<number>(0);
   const [isLoading, setIsLoading] = useState<boolean>(true);

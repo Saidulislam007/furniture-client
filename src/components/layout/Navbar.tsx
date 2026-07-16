@@ -8,17 +8,9 @@ import { useCartStore } from '@/store/cart.store';
 import AccountMenu from './AccountMenu';
 import MobileMenuDrawer from './MobileMenuDrawer';
 import { authClient } from '../../lib/auth-client';
+import type { UserSession } from "@/lib/auth/roles";
 
-interface UserSession {
-  id: string;
-  email: string;
-  name: string;
-  role: string;
-  emailVerified: boolean;
-  image?: string | null;
-  createdAt: Date;
-  updatedAt: Date;
-}
+
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -80,7 +72,14 @@ export default function Navbar() {
     { name: 'About', path: '/about' },
     { name: 'Contact', path: '/contact' },
     { name: 'Blog', path: '/blog' },
-    ...(role === 'admin' || role === 'manager' ? [{  path: '/dashboard/products' }] : []),
+    ...(role === 'admin' || role === 'manager'
+  ? [
+      {
+        name: 'Products',
+        path: '/dashboard/products',
+      },
+    ]
+  : []),
     { name: 'Dashboard', path: `/dashboard/${role || 'user'}` },
   ];
 
@@ -182,13 +181,18 @@ export default function Navbar() {
       {/* Mobile Menu Drawer Overlay */}
       <AnimatePresence mode="wait">
         {isOpen && (
-          <MobileMenuDrawer 
-            isOpen={isOpen} 
-            onClose={() => setIsOpen(false)} 
-            routes={routes} 
-            session={session || { role: currentRole }} // 🎯 🚀 ব্যাকআপ সেশন অবজেক্ট পাস
-            onSignOut={handleSignOut}
-          />
+          <MobileMenuDrawer
+  isOpen={isOpen}
+  onClose={() => setIsOpen(false)}
+  routes={routes}
+  session={
+    session ?? {
+      id: "",
+      role: currentRole,
+    }
+  }
+  onSignOut={handleSignOut}
+/>
         )}
       </AnimatePresence>
     </header>

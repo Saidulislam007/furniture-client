@@ -6,25 +6,15 @@ import { Boxes, AlertCircle, Edit3, Trash2, CheckCircle2, Loader2, X, Save, Chev
 import { getAllFurniture } from '@/services/api/getFurniture';
 import { deleteFurnitureFromBackend } from '@/services/api/deleteFurniture';
 import { updateFurnitureInBackend } from '@/services/api/editFurniture';
+import type { Product } from "@/types/product";
 
-interface InventoryItem {
-  _id?: string;
-  sku?: string;
-  title: string;
-  image: string;
-  price: number; 
-  deliveryFee?: number; 
-  stock: number;
-  status: 'Pending Approval' | 'Published' | 'Unpublished';
-  material?: string;
-  category?: string;
-}
+
 
 // 🎯 প্রতি পেজে ঠিক ৭টি করে ইনভেন্টরি কন্টেন্ট লক করা হলো ভাই!
 const ITEMS_PER_PAGE = 7;
 
 export default function InventoryLedgerPage() {
-  const [inventory, setInventory] = useState<InventoryItem[]>([]);
+  const [inventory, setInventory] = useState<Product[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -32,7 +22,7 @@ export default function InventoryLedgerPage() {
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
 
-  const [editingItem, setEditingItem] = useState<InventoryItem | null>(null);
+  const [editingItem, setEditingItem] = useState<Product | null>(null);
   const [isUpdating, setIsUpdating] = useState<boolean>(false);
 
   // প্যাজিনেশন স্টেট
@@ -124,7 +114,7 @@ export default function InventoryLedgerPage() {
       price: Number(formData.get('price')),
       deliveryFee: Number(formData.get('deliveryFee')),
       stock: Number(formData.get('stock')),
-      status: formData.get('status') as InventoryItem['status']
+      status: formData.get('status') as Product['status']
     };
 
     const success = await updateFurnitureInBackend(editingItem._id, updatedPayload);
@@ -138,10 +128,10 @@ export default function InventoryLedgerPage() {
     setIsUpdating(false);
   };
 
-  const getStatusStyle = (status: InventoryItem['status']) => {
+  const getStatusStyle = (status: Product['status']) => {
     switch (status) {
       case 'Published': return 'bg-stone-900 text-stone-50 border-stone-950';
-      case 'Unpublished': return 'bg-stone-100 text-stone-600 border-stone-300';
+      case 'Draft': return 'bg-stone-100 text-stone-600 border-stone-300';
       case 'Pending Approval': return 'bg-amber-50 text-amber-700 border-amber-200 animate-pulse';
       default: return 'bg-stone-100 text-stone-600';
     }

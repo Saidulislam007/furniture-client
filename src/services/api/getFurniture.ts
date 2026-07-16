@@ -1,7 +1,7 @@
 // src/services/api/getFurniture.ts
-
+import type { Product } from "@/types/product";
 const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ; 
-export const getAllFurniture = async (): Promise<any[] | null> => {
+export const getAllFurniture = async (): Promise<Product[] | null> => {
   try {
     const response = await fetch(`${BACKEND_BASE_URL}/api/v1/furniture`, {
       method: 'GET',

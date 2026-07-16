@@ -23,6 +23,8 @@ export default function ProfilePage() {
 
   // ⚡ সেশন লোড হওয়ার পর ইউজারের বর্তমান ডাটা ফর্মে সেট করার ইফেক্ট
   useEffect(() => {
+    console.log("Session:", session);
+  console.log("Session User:", session?.user);
     if (session?.user) {
       setProfile({
         name: session.user.name || '',
@@ -45,7 +47,7 @@ export default function ProfilePage() {
   if (success) {
     // 🎯 🟢 আলটিমেট ফিক্স: Better-Auth সেশন ক্লায়েন্টকে ফোর্স রিফ্রেশ/সিঙ্ক করা
     // এটি করা মাত্রই ব্রাউজার তার পুরানো ক্যাশ ফেলে দিয়ে ডাটাবেজ থেকে নতুন নাম/ইমেজ টেনে আনবে!
-    await authClient.sync(); 
+     
 
     setShowSuccess(true);
     

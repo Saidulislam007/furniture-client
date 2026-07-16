@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { motion } from 'framer-motion';
+import { motion, Variants } from 'framer-motion';
 
 // --- Types & Interfaces ---
 interface FeaturedChip {
@@ -21,13 +21,19 @@ interface HeroSectionProps {
 }
 
 // --- Animation Variants ---
-const fadeInUpVariant = {
-  hidden: { opacity: 0, y: 30 },
-  visible: { 
-    opacity: 1, 
+const fadeInUpVariant: Variants = {
+  hidden: {
+    opacity: 0,
+    y: 30,
+  },
+  visible: {
+    opacity: 1,
     y: 0,
-    transition: { duration: 0.8, ease: [0.25, 0.1, 0.25, 1] }
-  }
+    transition: {
+      duration: 0.6,
+      ease: "easeOut",
+    },
+  },
 };
 
 const containerStagger = {

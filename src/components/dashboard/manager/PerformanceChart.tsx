@@ -10,8 +10,11 @@ interface GroupedChartData {
   name: string;   // মাসের নাম (e.g., Jan, Feb)
   earnings: number; // ঐ মাসের মোট Delivered রেভিনিউ সাম
 }
+interface PerformanceChartProps {
+  data: any[];
+}
 
-export function PerformanceChart() {
+export function PerformanceChart({ data }: PerformanceChartProps) {
   // ডাইনামিক চার্ট ডাটা ও লোডিং স্টেটস
   const [chartData, setChartData] = useState<GroupedChartData[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
