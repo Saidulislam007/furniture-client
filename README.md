@@ -1,36 +1,244 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+🪑 FurniLux - Full-Stack Furniture E-Commerce Platform
 
-## Getting Started
+A modern, production-level **Furniture E-Commerce Web Application** built to demonstrate advanced **TypeScript, full-stack development, scalable architecture, and professional UI/UX practices**.
 
-First, run the development server:
+This project focuses on creating a real-world furniture marketplace with secure authentication, role-based authorization, product management, order workflow, and responsive dashboards.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+# 🚀 Project Overview
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+FurniLux is a full-stack furniture e-commerce platform where users can explore premium furniture products, manage their accounts, place orders, and track their activities.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+The application is designed with modern development practices:
 
-## Learn More
+- Strong TypeScript implementation
+- Clean architecture
+- Secure authentication system
+- Role-based access control
+- Responsive design
+- Production-ready coding standards
 
-To learn more about Next.js, take a look at the following resources:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+---
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+# 🎯 Project Goals
 
-## Deploy on Vercel
+The main objective of this project is to demonstrate:
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- Advanced TypeScript knowledge
+- Full-stack development capability
+- Modern frontend architecture
+- Backend API design
+- Authentication & authorization
+- Database modeling
+- Professional UI/UX implementation
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+
+---
+
+# ✨ Key Features
+
+## 🔐 Authentication System
+
+- Email & password registration
+- Secure login system
+- Google OAuth authentication
+- Session management
+- Protected routes
+- Role-based authorization
+- Password validation
+- Error handling
+
+
+---
+
+# 👥 User Roles & Permissions
+
+The system contains three user roles:
+
+## 👤 User
+
+Users can:
+
+- Register and login
+- Browse furniture products
+- Search products
+- Filter products
+- View product details
+- Add products to cart
+- Place orders
+- Track order history
+- Manage profile
+- Access user dashboard
+
+
+---
+
+## 🧑‍💼 Manager
+
+Managers can:
+
+- Add new products
+- Update product information
+- Submit products for approval
+- Manage assigned activities
+- View user information
+- Manage product workflow
+
+
+---
+
+## 👑 Admin
+
+Admin has complete platform control.
+
+Admin can:
+
+- Manage all users
+- Manage managers
+- Approve/reject products
+- Manage orders
+- Monitor platform activities
+- Control product approval system
+- Manage application settings
+
+
+---
+
+# 📊 Dashboard System
+
+The application includes separate dashboards:
+
+## User Dashboard
+
+Features:
+
+- Profile management
+- Order history
+- Product activities
+- Account settings
+
+
+## Manager Dashboard
+
+Features:
+
+- Product management
+- Product approval status
+- User management
+
+
+## Admin Dashboard
+
+Features:
+
+- User management
+- Product approval
+- Order management
+- Platform monitoring
+
+
+All dashboards are fully responsive.
+
+---
+
+# 🎨 UI/UX Features
+
+Design philosophy:
+
+- Modern
+- Minimal
+- Premium furniture brand style
+- Clean layout
+- Professional appearance
+
+
+Features:
+
+- Responsive design
+- Mobile-first approach
+- Smooth animations
+- Interactive cards
+- Elegant hover effects
+- Loading animations
+- Toast notifications
+
+
+---
+
+# 📱 Responsive Design
+
+Fully optimized for:
+
+- 1920px Desktop
+- 1024px Laptop
+- 768px Tablet
+- 480px Mobile
+- 320px Small devices
+
+
+Mobile features:
+
+- Hamburger navigation
+- Responsive dashboard sidebar
+- Touch-friendly UI
+
+
+---
+
+# ⚡ Animation & Interaction
+
+Implemented using:
+
+- Framer Motion
+
+
+Includes:
+
+- Page transitions
+- Card animations
+- Button hover effects
+- Product animations
+- Dashboard interactions
+
+
+---
+
+# 🛠️ Technology Stack
+
+## Frontend
+
+- Next.js
+- TypeScript
+- Tailwind CSS
+- Framer Motion
+- React Hook Form
+- Zod Validation
+- React Hot Toast
+
+
+## Backend
+
+- Node.js
+- TypeScript
+- Express.js / NestJS
+- REST API Architecture
+
+
+## Database
+
+- PostgreSQL / MongoDB
+- Prisma ORM / Mongoose
+
+
+## Authentication
+
+- JWT Authentication
+- Refresh Token System
+- Google OAuth
+
+
+---
+
+# 🏗️ Project Architecture
