@@ -18,7 +18,8 @@ export interface Product {
    subCategory?: string;
    oldPrice?: number;
 
-  category?: string;   // ✅ Add this
+  category?: string;
+  categorySlug?: string;
 
   dimensions?: {
     width: number;

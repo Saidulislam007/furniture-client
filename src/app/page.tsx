@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import HeroSection from "@/components/sections/HeroSection";
+import ShopByCategories from "@/components/sections/ShopByCategories";
 import CategoryGrid from "@/components/sections/CategorySection"; 
 import StatsSection from "@/components/sections/StatsSection";
 import { ProductSection } from "@/components/ProductSection";
@@ -104,6 +105,9 @@ export default function HomePage() {
       {/* 🚀 ১. হিরো সেকশন */}
       <HeroSection />
 
+      {/* Shop by Categories: direct category navigation */}
+      
+
       {/* 📂 ২. ক্যাটাগরি গ্রিড */}
       <CategoryGrid 
         categories={editorialCategories}
@@ -113,6 +117,7 @@ export default function HomePage() {
       
       {/* 📊 ৩. অ্যানিমেটেড স্ট্যাটস সেকশন */}
       <StatsSection />
+      <ShopByCategories />
       <VideoSection/>
 
       {/* 🛍️ ৪. প্রিমিয়াম প্রোডাক্ট সেকশন */}

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
-import { CheckCircle2, Loader2, ArrowLeft, Receipt, CreditCard, X, ShoppingBag, Truck, Edit3, Trash2, EyeOff, Eye, Star, User, AlertTriangle, Save } from "lucide-react";
+import { CheckCircle2, Loader2, ArrowLeft, X, ShoppingBag, Truck, Edit3, Trash2, EyeOff, Eye, Star, User, AlertTriangle, Save } from "lucide-react";
 // Better-Auth ক্লায়েন্ট সেশন হুক
 import { authClient } from "@/lib/auth-client";
 import { Product } from "@/types/product";
@@ -54,9 +54,7 @@ export default function ProductDetailsPage() {
   const [isAddingToCart, setIsAddingToCart] = useState<boolean>(false);
   const [isActionProcessing, setIsActionProcessing] = useState<boolean>(false);
 
-  const [showReceipt, setShowReceipt] = useState<boolean>(false);
   const [showDeleteModal, setShowDeleteModal] = useState<boolean>(false);
-  const [isProcessingOrder, setIsProcessingOrder] = useState<boolean>(false);
 
   // 📝 🚀 🟢 ইন-পেজ লাইভ এডিট ফর্ম ড্রয়ার স্টেটসমূহ ভাই
   const [showEditDrawer, setShowEditDrawer] = useState<boolean>(false);
@@ -183,41 +181,6 @@ export default function ProductDetailsPage() {
       setIsAddingToCart(false);
     }
   };
-  // ফিক্সড পেমেন্ট হ্যান্ডলার
-const handleConfirmPurchase = async (): Promise<void> => {
-  if (!session?.user?.id || !product) {
-    alert("Authentication Error: Session expired or product invalid.");
-    return;
-  }
-
-  setIsProcessingOrder(true);
-
-  // কারেন্ট ইউজারের ডাটা সহ পে-লোড তৈরি
-  const orderData = {
-    userId: session.user.id,
-    userName: session.user.name || "Anonymous",
-    userEmail: session.user.email || "No Email",
-    productId: product._id,
-    title: product.title,
-    price: Number(product.price),
-    deliveryFee: Number(product.deliveryFee || 0),
-    image: product.image,
-    color: selectedColor || "Default",
-    createdAt: new Date().toISOString()
-  };
-
-  try {
-    await sendToDeliveriesBackend(orderData);
-    alert("Order placed successfully!");
-    setShowReceipt(false);
-  } catch (error: any) {
-    console.error("Order error:", error);
-    alert("Order failed: " + (error.message || "Unknown error"));
-  } finally {
-    setIsProcessingOrder(false);
-  }
-};
-
   // 🛠️ স্ট্যাটাস পাবলিশ/আনপাবলিশ টগল লজিক ভাই
   const handleToggleStatus = async () => {
     if (!product) return;
@@ -453,33 +416,6 @@ const handleConfirmPurchase = async (): Promise<void> => {
         )}
       </AnimatePresence>
 
-      {/* 🚀 ইনভয়েস রিসিট মডাল প্যানেল */}
-      <AnimatePresence>
-        {showReceipt && product && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-900/40 backdrop-blur-xs p-4">
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="w-full max-w-md bg-white p-6 rounded-sm flex flex-col space-y-5 text-left shadow-2xl">
-              <div className="flex justify-between items-center border-b border-stone-100 pb-3">
-                <h4 className="font-serif text-lg text-stone-950 font-light flex items-center gap-1.5"><Receipt className="w-4 h-4" /> Studio Asset Invoice</h4>
-                <button onClick={() => setShowReceipt(false)} className="text-stone-400 hover:text-stone-900"><X className="w-4 h-4" /></button>
-              </div>
-              <div className="space-y-4 text-xs font-mono text-stone-600 bg-stone-50 p-4 rounded-xs border border-stone-100">
-                <div className="flex justify-between"><span className="text-stone-400">Client Node:</span><span className="text-stone-950 font-medium">{session?.user?.name}</span></div>
-                <div className="flex justify-between truncate"><span className="text-stone-400">Registry Email:</span><span className="text-stone-950">{session?.user?.email}</span></div>
-                <div className="border-t border-stone-200/60 my-2 pt-2 flex justify-between"><span className="text-stone-400">Product:</span><span className="text-stone-950 font-sans truncate max-w-[180px]">{product?.title || ""}</span></div>
-                <div className="flex justify-between"><span className="text-stone-400">Valuation:</span><span className="text-stone-950">${product?.price?.toFixed(2)}</span></div>
-                <div className="flex justify-between border-t border-stone-300 mt-3 pt-3 text-sm font-sans"><span className="font-serif text-stone-950 font-medium">Total Price:</span><span className="font-mono font-bold text-stone-950">${((product?.price || 0) + (product?.deliveryFee || 0)).toFixed(2)}</span></div>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button type="button" onClick={() => setShowReceipt(false)} className="flex-1 h-11 border border-stone-200 text-stone-700 text-xs uppercase tracking-wider rounded-sm hover:bg-stone-50">Cancel</button>
-                <button onClick={handleConfirmPurchase} disabled={isProcessingOrder} className="flex-1 h-11 bg-stone-950 text-white text-xs uppercase tracking-wider rounded-sm hover:bg-stone-800 flex items-center justify-center gap-1.5 disabled:bg-stone-400">
-                  {isProcessingOrder ? <Loader2 className="w-4 h-4 animate-spin" /> : <CreditCard className="w-3.5 h-3.5" />} Confirm Payment
-                </button>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
       <div className="max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8">
         <button onClick={() => router.back()} className="mb-8 flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 transition-colors group">
           <svg fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor" className="w-4 h-4 transition-transform group-hover:-translate-x-1"><path strokeLinecap="round" strokeLinejoin="round" d="M10.5 19.5 3 12m0 0 7.5-7.5M3 12h18" /></svg>
@@ -583,7 +519,14 @@ const handleConfirmPurchase = async (): Promise<void> => {
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <button onClick={() => { if (!session) { triggerToast("Authentication Required: Please log in to complete purchase."); } else { setShowReceipt(true); } }} disabled={product?.stock === 0} className="w-full bg-[#111827] hover:bg-black text-white text-sm font-medium py-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:bg-gray-300">
+                  <button onClick={() => {
+                    if (!session) {
+                      triggerToast("Authentication Required: Please log in to complete purchase.");
+                      return;
+                    }
+                    const colorQuery = selectedColor ? `?color=${encodeURIComponent(selectedColor)}` : "";
+                    router.push(`/checkout/${product?._id}${colorQuery}`);
+                  }} disabled={product?.stock === 0} className="w-full bg-[#111827] hover:bg-black text-white text-sm font-medium py-4 rounded-xl shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:bg-gray-300">
                     <ShoppingBag className="w-4 h-4" /> Buy Now
                   </button>
                   <button onClick={handleAddToCart} disabled={product?.stock === 0 || isAddingToCart} className="w-full bg-white hover:bg-gray-50 text-gray-900 text-sm font-medium py-4 rounded-xl border border-gray-200 shadow-sm transition-all flex items-center justify-center gap-1.5 disabled:text-gray-400">

@@ -1,15 +1,14 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect, useMemo } from "react";
+import Link from "next/link";
 // 🎯 🚀 আপনার প্রজেক্টের মেইন সার্ভিস ফাংশন
-import { getAllFurniture } from '@/services/api/getFurniture';
+import { getAllFurniture } from "@/services/api/getFurniture";
 import type { Product } from "@/types/product";
 
 // ==========================================
 // 📑 1. Types Definition
 // ==========================================
-
 
 interface ProductSectionProps {
   title: string;
@@ -54,6 +53,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
             className="w-full h-full object-cover object-center transition-transform duration-[1200ms] cubic-bezier(0.25, 1, 0.5, 1) group-hover:scale-105"
             loading="lazy"
           />
+
           <div className="absolute inset-0 bg-black/0 group-hover:bg-black/[0.01] transition-colors duration-700" />
         </div>
 
@@ -64,7 +64,9 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
           </h3>
 
           {product.price && (
-            <p className="text-sm font-bold text-gray-950 mb-1">${product.price}</p>
+            <p className="text-sm font-bold text-gray-950 mb-1">
+              ${product.price}
+            </p>
           )}
 
           {product.description && (
@@ -74,9 +76,7 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
           )}
 
           {/* Action Button */}
-          <div
-            className="mt-auto w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-gray-700 transition-all duration-500 group-hover:bg-gray-900 group-hover:border-gray-900 group-hover:text-white"
-          >
+          <div className="mt-auto w-8 h-8 rounded-full border border-gray-400 flex items-center justify-center text-gray-700 transition-all duration-500 group-hover:bg-gray-900 group-hover:border-gray-900 group-hover:text-white">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               fill="none"
@@ -85,7 +85,11 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
               stroke="currentColor"
               className="w-3.5 h-3.5 transition-transform duration-500 ease-out group-hover:translate-x-1.5"
             >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3"
+              />
             </svg>
           </div>
         </div>
@@ -95,17 +99,15 @@ const ProductCard: React.FC<{ product: Product }> = ({ product }) => {
 };
 
 // ==========================================
-// 🌐 4. Main Component: Product Section (Exported)
+// 🌐 4. Main Component: Product Section
 // ==========================================
 export const ProductSection: React.FC<ProductSectionProps> = ({
   title,
   subtitle,
-  
 
   onAddToCart,
   onViewDetails,
 }) => {
-
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [products, setFurniture] = useState<Product[]>([]);
@@ -115,6 +117,7 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
       try {
         setIsLoading(true);
         setError(null);
+
         const data = await getAllFurniture();
 
         if (data && Array.isArray(data)) {
@@ -125,7 +128,11 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
           setFurniture(publishedData);
         }
       } catch (err: any) {
-        console.error("❌ Failed to resolve home content grid nodes:", err);
+        console.error(
+          "❌ Failed to resolve home content grid nodes:",
+          err
+        );
+
         setError("Failed to synchronize architectural specs.");
       } finally {
         setIsLoading(false);
@@ -142,39 +149,63 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
 
   return (
     <section className="w-full py-16 md:py-24 bg-[#f4f0eb] overflow-hidden select-none">
+      {/* 🔮 আলটিমেট সিএসএস আর্কিটেকচারাল ইঞ্জিন */}
+      <style
+  dangerouslySetInnerHTML={{
+    __html: `
+      @keyframes marquee {
+        0% {
+          transform: translateX(0);
+        }
 
-      {/* 🔮 আলটিমেট সিএসএস আর্কিটেকচারাল ইঞ্জিন (Pure CSS Marquee Infrastructure) */}
-      <style dangerouslySetInnerHTML={{
-        __html: `
-        @keyframes marquee {
-          0% { transform: translateX(0); }
-          100% { transform: translateX(-33.3333%); }
+        100% {
+          transform: translateX(-33.3333%);
         }
+      }
+
+      .marquee-track {
+        display: flex;
+        width: max-content;
+        animation: marquee 40s linear infinite;
+      }
+
+      .marquee-container:hover .marquee-track {
+        animation-play-state: paused;
+      }
+
+      @media (max-width: 320px) {
         .marquee-track {
-          display: flex;
-          width: max-content;
-          animation: marquee 35s linear infinite;
+          animation-duration: 28s;
         }
-        /* 🎯 মাউস হোভার করলে রানিং অফ করার মূল জাদু এখানে ভাই */
-        .marquee-container:hover .marquee-track {
-          animation-play-state: paused;
+      }
+
+      @media (min-width: 321px) and (max-width: 480px) {
+        .marquee-track {
+          animation-duration: 32s;
         }
-        
-        /* 📱 ১০০% রেসপন্সিভ স্ক্রিন কাস্টম মিডিয়া কোয়েরি গাইড */
-        @media (max-width: 320px) { .marquee-track { animation-duration: 20s; } }
-        @media (max-width: 480px) { .marquee-track { animation-duration: 25s; } }
-        @media (max-width: 1024px) { .marquee-track { animation-duration: 30s; } }
-      `}} />
+      }
+
+      @media (min-width: 481px) and (max-width: 1024px) {
+        .marquee-track {
+          animation-duration: 36s;
+        }
+      }
+    `,
+  }}
+/>
 
       <div className="max-w-[1920px] mx-auto">
-
         {/* Header Layout */}
         <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 mb-12 md:mb-16 px-6 sm:px-8 md:px-12 xl:px-16">
           <div className="max-w-xl text-left">
             <h2 className="text-3xl sm:text-4xl lg:text-5xl font-serif font-light text-gray-900 tracking-tight leading-tight">
-              {title.split(' ')[0]} <span className="font-normal text-amber-800/90">{title.split(' ').slice(1).join(' ')}</span>
+              {title.split(" ")[0]}{" "}
+              <span className="font-normal text-amber-800/90">
+                {title.split(" ").slice(1).join(" ")}
+              </span>
             </h2>
           </div>
+
           {subtitle && (
             <div className="max-w-xs md:mt-2 text-left md:text-right">
               <p className="text-xs sm:text-sm text-gray-600 font-light leading-relaxed">
@@ -186,8 +217,10 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
 
         {/* ─── SCROLLING CONSOLE CONTROLLER ─── */}
         <div className="marquee-container w-full overflow-hidden relative cursor-grab active:cursor-grabbing">
-          {/* গ্লসি ফেড ওভারলে মাস্ক (দুই পাশে প্রিমিয়াম গ্রেডিয়েন্ট শ্যাডো ভাই) */}
+          {/* Left Gradient */}
           <div className="absolute top-0 left-0 h-full w-12 sm:w-24 bg-gradient-to-r from-[#f4f0eb] to-transparent z-10 pointer-events-none" />
+
+          {/* Right Gradient */}
           <div className="absolute top-0 right-0 h-full w-12 sm:w-24 bg-gradient-to-l from-[#f4f0eb] to-transparent z-10 pointer-events-none" />
 
           {/* Loading Skeleton */}
@@ -203,10 +236,12 @@ export const ProductSection: React.FC<ProductSectionProps> = ({
             </div>
           ) : products.length === 0 ? (
             <div className="mx-6 sm:mx-16 py-16 text-center bg-transparent border border-dashed border-gray-300 rounded-[1.5rem]">
-              <h3 className="text-lg font-serif text-gray-800">No architectural pieces listed.</h3>
+              <h3 className="text-lg font-serif text-gray-800">
+                No architectural pieces listed.
+              </h3>
             </div>
           ) : (
-            /* 🚀 রানিং ট্র্যাক ম্যাট্রিক্স নোড */
+            /* 🚀 Running Track */
             <div className="marquee-track py-2">
               {duplicatedProducts.map((product, index) => (
                 <ProductCard
