@@ -37,7 +37,7 @@ export default function Navbar() {
   const cartItemsCount = useCartStore((state) => state.items.reduce((acc, item) => acc + item.quantity, 0));
   
   // Better-Auth সেশন হুক
-  const { data: authData, isPending } = authClient.useSession();
+  const { data: authData } = authClient.useSession();
   
   // 🎯 🟢 সেফগার্ড: রোল যদি আন্ডারডিফাইন্ড থাকে তবে পাথনাম (URL) চেক করে ব্যাকআপ রোল ইনজেক্ট করবে ভাই
   let currentRole = authData?.user?.role || 'user';
@@ -115,8 +115,6 @@ export default function Navbar() {
 
   const isCartActive = pathname === '/cart';
 
-  if (isPending) return <div className="h-20 bg-stone-50" />;
-
   return (
     <header
       className={`fixed top-0 left-0 w-full z-50 transition-all duration-300 font-serif border-b ${
@@ -125,7 +123,7 @@ export default function Navbar() {
           : 'bg-stone-50 text-stone-900 border-stone-200 py-5'
       }`}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <div className="mx-auto flex w-full max-w-[1700px] items-center justify-between px-4 sm:px-6 lg:px-8">
         
         {/* LOGO */}
         <Link href="/" className="text-xl sm:text-2xl font-bold tracking-widest uppercase min-h-[44px] flex items-center">
