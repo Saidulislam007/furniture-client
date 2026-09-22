@@ -19,6 +19,7 @@ interface RegisterInput {
 export default function RegisterPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
   const [serverSuccess, setServerSuccess] = useState<string | null>(null);
 
@@ -66,13 +67,20 @@ export default function RegisterPage() {
 
   const handleGoogleSignIn = async () => {
     setServerError(null);
+    setIsGoogleLoading(true);
     try {
-      await authClient.signIn.social({
+      const response = await authClient.signIn.social({
         provider: 'google',
         callbackURL: '/',
       });
+
+      if (response?.error) {
+        setServerError(response.error.message || 'Google sign-in failed. Please try again.');
+        setIsGoogleLoading(false);
+      }
     } catch (err: unknown) {
       setServerError('Google sign-in failed. Please try again.');
+      setIsGoogleLoading(false);
     }
   };
 
@@ -228,10 +236,11 @@ export default function RegisterPage() {
           {/* Google Button */}
           <button
             type="button"
-            className="w-full h-12 border border-stone-200 text-sm font-medium text-stone-700 rounded flex items-center justify-center gap-3 hover:bg-stone-50 transition-colors min-h-[44px]"
+            disabled={isGoogleLoading || isLoading}
+            className="w-full h-12 border border-stone-200 text-sm font-medium text-stone-700 rounded flex items-center justify-center gap-3 hover:bg-stone-50 transition-colors min-h-[44px] disabled:cursor-not-allowed disabled:opacity-60"
             onClick={handleGoogleSignIn}
           >
-            Google Identity
+            {isGoogleLoading ? 'Connecting to Google...' : 'Google Identity'}
           </button>
 
           <p className="mt-6 text-center text-xs sm:text-sm text-stone-600">

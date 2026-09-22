@@ -28,8 +28,48 @@ if (process.env.NODE_ENV === "production") {
 
 const db = client.db("furniture-server");
 
+const configuredBaseURL =
+  process.env.BETTER_AUTH_URL ||
+  process.env.NEXT_PUBLIC_BETTER_AUTH_URL ||
+  "http://localhost:3000";
+
+const configuredHost = (() => {
+  try {
+    return new URL(configuredBaseURL).host;
+  } catch {
+    return undefined;
+  }
+})();
+
+const allowedHosts = Array.from(
+  new Set(
+    [
+      "localhost:*",
+      "127.0.0.1:*",
+      configuredHost,
+      ...(process.env.BETTER_AUTH_ALLOWED_HOSTS?.split(",") || []),
+    ]
+      .map((value) => value?.trim())
+      .filter((value): value is string => Boolean(value)),
+  ),
+);
+
+const trustedOrigins = [
+  "http://localhost:*",
+  "http://127.0.0.1:*",
+  ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",") || []),
+]
+  .map((value) => value.trim())
+  .filter(Boolean);
+
 export const auth = betterAuth({
-  baseURL: process.env.BETTER_AUTH_URL,
+  baseURL: {
+    allowedHosts,
+    fallback: configuredBaseURL,
+    protocol: "auto",
+  },
+
+  trustedOrigins,
 
   database: mongodbAdapter(db, {
     client: client,
@@ -46,8 +86,8 @@ export const auth = betterAuth({
 
   socialProviders: {
     google: {
-      clientId: process.env.GOOGLE_CLIENT_ID as string,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
     },
   },
 

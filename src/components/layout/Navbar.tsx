@@ -10,6 +10,23 @@ import MobileMenuDrawer from './MobileMenuDrawer';
 import { authClient } from '../../lib/auth-client';
 import type { UserSession } from "@/lib/auth/roles";
 
+interface NavRoute {
+  name: string;
+  path?: string;
+  children?: Array<{
+    name: string;
+    path: string;
+  }>;
+}
+
+const exploreRoute: NavRoute = {
+  name: 'Explore',
+  children: [
+    { name: 'About', path: '/about' },
+    { name: 'Contact', path: '/contact' },
+    { name: 'Blog', path: '/blog' },
+  ],
+};
 
 
 export default function Navbar() {
@@ -58,20 +75,16 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const publicRoutes = [
+  const publicRoutes: NavRoute[] = [
     { name: 'Home', path: '/' },
     { name: 'Shop', path: '/products' },
-    { name: 'About', path: '/about' },
-    { name: 'Contact', path: '/contact' },
-    { name: 'Blog', path: '/blog' },
+    exploreRoute,
   ];
 
-  const getLoggedInRoutes = (role?: string) => [
+  const getLoggedInRoutes = (role?: string): NavRoute[] => [
     { name: 'Home', path: '/' },
     { name: 'Shop', path: '/products' },
-    { name: 'About', path: '/about' },
-    { name: 'Contact', path: '/contact' },
-    { name: 'Blog', path: '/blog' },
+    exploreRoute,
     ...(role === 'admin' || role === 'manager'
   ? [
       {
@@ -80,7 +93,6 @@ export default function Navbar() {
       },
     ]
   : []),
-    { name: 'Dashboard', path: `/dashboard/${role || 'user'}` },
   ];
 
   // 🎯 🟢 URL চেক করে ব্যাকআপ রাউট তৈরি লজিক
@@ -111,11 +123,58 @@ export default function Navbar() {
         {/* DESKTOP NAV LINKS */}
         <nav className="hidden md:flex space-x-8">
           {routes.map((route) => {
-            const isActive = pathname === route.path;
+            const isActive = route.children
+              ? route.children.some((child) => pathname === child.path)
+              : pathname === route.path;
+
+            if (route.children) {
+              return (
+                <div key={route.name} className="group relative">
+                  <button
+                    type="button"
+                    className={`flex items-center gap-1 text-sm tracking-wide uppercase transition-colors relative py-2 ${
+                      isActive ? 'text-amber-600 font-semibold' : 'group-hover:text-amber-700 text-inherit'
+                    }`}
+                    aria-haspopup="true"
+                  >
+                    {route.name}
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="h-3.5 w-3.5 transition-transform duration-300 group-hover:rotate-180 group-focus-within:rotate-180">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+                    </svg>
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeUnderline"
+                        className="absolute bottom-0 left-0 w-full h-[2px] bg-amber-600"
+                        transition={{ type: 'spring', stiffness: 380, damping: 30 }}
+                      />
+                    )}
+                  </button>
+
+                  <div className="invisible absolute left-1/2 top-full z-50 w-44 -translate-x-1/2 pt-3 opacity-0 transition-all duration-200 group-hover:visible group-hover:opacity-100 group-focus-within:visible group-focus-within:opacity-100">
+                    <div className="overflow-hidden rounded-sm border border-stone-200 bg-white py-2 text-stone-900 shadow-xl">
+                      {route.children.map((child) => (
+                        <Link
+                          key={child.path}
+                          href={child.path}
+                          className={`block px-5 py-3 text-xs tracking-widest uppercase transition-colors ${
+                            pathname === child.path
+                              ? 'bg-stone-50 text-amber-700 font-semibold'
+                              : 'hover:bg-stone-50 hover:text-amber-700'
+                          }`}
+                        >
+                          {child.name}
+                        </Link>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+
             return (
               <Link
-                key={route.path}
-                href={route.path}
+                key={route.path!}
+                href={route.path!}
                 className={`text-sm tracking-wide uppercase transition-colors relative py-2 ${
                   isActive ? 'text-amber-600 font-semibold' : 'hover:text-amber-700 text-inherit'
                 }`}
