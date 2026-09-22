@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { ArrowLeft, Box, Headphones, Heart, Minus, Plus, Share2, Wrench } from "lucide-react";
 import { getCategoryProducts } from "@/services/api/getCategoryProducts";
@@ -11,32 +11,44 @@ import { shopCategories, slugify } from "@/components/categories/category-data";
 const productSlug = (product: Product) => `${slugify(product.title)}-${product._id}`;
 
 export default function CategoryProductDetailsPage() {
-  const params = useParams<{ category: string; slug: string }>();
+  const params = useParams<{ category?: string; slug: string }>();
+  const pathname = usePathname();
   const router = useRouter();
-  const category = shopCategories.find((item) => item.slug === params?.category);
+  const standaloneCategory = ["sofas", "storage", "bedroom", "office", "study", "kitchen", "kids", "outdoor"].find(
+    (slug) => pathname === `/${slug}` || pathname.startsWith(`/${slug}/`),
+  ) || "";
+  const categorySlug = params?.category || standaloneCategory;
+  const category = shopCategories.find((item) => item.slug === categorySlug);
+  const categoryPath = standaloneCategory
+    ? `/${standaloneCategory}`
+    : `/categories/${categorySlug}`;
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
 
   useEffect(() => {
     const loadProduct = async () => {
-      const data = await getCategoryProducts(params?.category || "");
-      setProducts(data);
+      const data = await getCategoryProducts(categorySlug);
+      const requiresExactCategory = ["sofas", "storage", "bedroom", "office", "study", "kitchen", "kids", "outdoor"].includes(categorySlug);
+      const categoryProducts = requiresExactCategory
+        ? data.filter((item) => item.category?.trim().toLowerCase() === categorySlug)
+        : data;
+      setProducts(categoryProducts);
       setLoading(false);
     };
     loadProduct();
-  }, [params?.category]);
+  }, [categorySlug]);
 
   const product = useMemo(() => products.find((item) => productSlug(item) === params?.slug) || products.find((item) => slugify(item.title) === params?.slug), [products, params?.slug]);
 
   if (loading) return <main className="min-h-screen bg-[#f4f0eb] pt-24"><div className="mx-auto grid max-w-[1440px] grid-cols-1 gap-10 px-5 py-12 lg:grid-cols-2"><div className="aspect-square animate-pulse rounded-3xl bg-stone-200" /><div className="space-y-5 pt-8"><div className="h-5 w-24 animate-pulse bg-stone-200" /><div className="h-14 w-3/4 animate-pulse bg-stone-200" /><div className="h-24 animate-pulse bg-stone-200" /></div></div></main>;
 
-  if (!product || !category) return <main className="min-h-screen bg-[#f4f0eb] px-6 pt-32 text-center"><h1 className="font-serif text-4xl text-stone-900">Product not found</h1><Link href={`/categories/${params?.category || ""}`} className="mt-6 inline-block text-sm text-amber-800 hover:underline">Back to category</Link></main>;
+  if (!product || !category) return <main className="min-h-screen bg-[#f4f0eb] px-6 pt-32 text-center"><h1 className="font-serif text-4xl text-stone-900">Product not found</h1><Link href={categoryPath} className="mt-6 inline-block text-sm text-amber-800 hover:underline">Back to category</Link></main>;
 
   return (
     <main className="min-h-screen bg-white pt-24 pb-20 text-stone-950">
       <div className="mx-auto max-w-[1680px] px-5 py-8 sm:px-8 lg:px-12">
-        <Link href={`/categories/${category.slug}`} className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-stone-600 transition hover:text-amber-800"><ArrowLeft className="h-4 w-4" /> Back to {category.name}</Link>
+        <Link href={categoryPath} className="inline-flex items-center gap-2 text-[11px] uppercase tracking-[0.18em] text-stone-600 transition hover:text-amber-800"><ArrowLeft className="h-4 w-4" /> Back to {category.name}</Link>
 
         <div className="mt-7 grid grid-cols-1 gap-10 lg:grid-cols-[minmax(0,1.08fr)_minmax(420px,0.92fr)] lg:gap-16 xl:gap-24">
           <div className="relative flex min-h-[360px] items-center justify-center overflow-hidden bg-[#faf8f5] sm:min-h-[560px] lg:min-h-[650px]">
@@ -58,7 +70,7 @@ export default function CategoryProductDetailsPage() {
             <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <div className="flex h-14 items-center justify-between rounded-full border border-stone-300 px-2 sm:w-36"><button type="button" aria-label="Decrease quantity" onClick={() => setQuantity((current) => Math.max(1, current - 1))} className="grid h-9 w-9 place-items-center text-stone-700 hover:text-amber-800"><Minus className="h-4 w-4" /></button><span className="text-sm font-medium">{quantity}</span><button type="button" aria-label="Increase quantity" onClick={() => setQuantity((current) => Math.min(product.stock || 1, current + 1))} className="grid h-9 w-9 place-items-center text-stone-700 hover:text-amber-800"><Plus className="h-4 w-4" /></button></div>
               <Link href={`/products/${product._id}`} className="flex h-14 flex-1 items-center justify-center rounded-full border border-amber-800 px-7 text-xs font-bold uppercase tracking-[0.16em] text-amber-900 transition hover:bg-amber-50">Add to Cart</Link>
-              <button type="button" disabled={product.stock === 0} onClick={() => router.push(`/checkout/${product._id}`)} className="h-14 flex-1 rounded-full bg-[#9d155f] px-7 text-xs font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#7d0f4a] disabled:cursor-not-allowed disabled:bg-stone-300">Buy Now</button>
+              <button type="button" disabled={product.stock === 0} onClick={() => router.push(`/checkout/${product._id}?quantity=${quantity}`)} className="h-14 flex-1 rounded-full bg-[#9d155f] px-7 text-xs font-bold uppercase tracking-[0.16em] text-white transition hover:bg-[#7d0f4a] disabled:cursor-not-allowed disabled:bg-stone-300">Buy Now</button>
             </div>
 
             <p className="mt-7 inline-flex bg-amber-50 px-4 py-2 text-sm text-stone-600">Estimated delivery within 3–5 days.</p>

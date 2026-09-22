@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useParams, usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { getCategoryProducts } from "@/services/api/getCategoryProducts";
@@ -12,9 +12,16 @@ const productSlug = (product: Product) => `${slugify(product.title)}-${product._
 const PRODUCTS_PER_PAGE = 8;
 
 export default function CategoryPage() {
-  const params = useParams<{ category: string }>();
-  const categorySlug = params?.category || "";
+  const params = useParams<{ category?: string }>();
+  const pathname = usePathname();
+  const standaloneCategory = ["sofas", "storage", "bedroom", "office", "study", "kitchen", "kids", "outdoor"].find(
+    (slug) => pathname === `/${slug}` || pathname.startsWith(`/${slug}/`),
+  ) || "";
+  const categorySlug = params?.category || standaloneCategory;
   const category = shopCategories.find((item) => item.slug === categorySlug);
+  const categoryPath = standaloneCategory
+    ? `/${standaloneCategory}`
+    : `/categories/${categorySlug}`;
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -24,7 +31,11 @@ export default function CategoryPage() {
     const loadProducts = async () => {
       setLoading(true);
       const data = await getCategoryProducts(categorySlug);
-      setProducts(data);
+      const requiresExactCategory = ["sofas", "storage", "bedroom", "office", "study", "kitchen", "kids", "outdoor"].includes(categorySlug);
+      const categoryProducts = requiresExactCategory
+        ? data.filter((product) => product.category?.trim().toLowerCase() === categorySlug)
+        : data;
+      setProducts(categoryProducts);
       setCurrentPage(1);
       setLoading(false);
     };
@@ -70,7 +81,7 @@ export default function CategoryPage() {
         ) : (
           <>
             <div className="grid grid-cols-1 gap-x-7 gap-y-10 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {paginatedProducts.map((product) => <Link key={product._id} href={`/categories/${category.slug}/${productSlug(product)}`} className="group"><div className="aspect-[4/3.3] overflow-hidden rounded-[1.4rem] bg-[#eadecf]"><img src={product.image} alt={product.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" /></div><p className="mt-4 text-[10px] uppercase tracking-[0.18em] text-stone-400">{product.category || category.name}</p><div className="mt-1 flex items-start justify-between gap-3"><h2 className="font-serif text-xl text-stone-900 group-hover:text-amber-800">{product.title}</h2><ArrowRight className="mt-1 h-4 w-4 shrink-0 text-stone-500 transition-transform group-hover:translate-x-1" /></div><p className="mt-2 text-sm font-semibold text-stone-800">৳{product.price.toLocaleString()}</p></Link>)}
+              {paginatedProducts.map((product) => <Link key={product._id} href={`${categoryPath}/${productSlug(product)}`} className="group"><div className="aspect-[4/3.3] overflow-hidden rounded-[1.4rem] bg-[#eadecf]"><img src={product.image} alt={product.title} className="h-full w-full object-cover transition duration-700 group-hover:scale-105" /></div><p className="mt-4 text-[10px] uppercase tracking-[0.18em] text-stone-400">{product.category || category.name}</p><div className="mt-1 flex items-start justify-between gap-3"><h2 className="font-serif text-xl text-stone-900 group-hover:text-amber-800">{product.title}</h2><ArrowRight className="mt-1 h-4 w-4 shrink-0 text-stone-500 transition-transform group-hover:translate-x-1" /></div><p className="mt-2 text-sm font-semibold text-stone-800">৳{product.price.toLocaleString()}</p></Link>)}
             </div>
 
             {totalPages > 1 && (

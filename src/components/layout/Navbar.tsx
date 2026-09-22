@@ -76,14 +76,26 @@ export default function Navbar() {
   }, []);
 
   const publicRoutes: NavRoute[] = [
-    { name: 'Home', path: '/' },
-    { name: 'Shop', path: '/products' },
+    { name: 'Sofas', path: '/sofas' },
+    { name: 'Storage', path: '/storage' },
+    { name: 'Bedroom', path: '/bedroom' },
+    { name: 'Office', path: '/office' },
+    { name: 'Study', path: '/study' },
+    { name: 'Kitchen', path: '/kitchen' },
+    { name: 'Kids', path: '/kids' },
+    { name: 'Outdoor', path: '/outdoor' },
     exploreRoute,
   ];
 
   const getLoggedInRoutes = (role?: string): NavRoute[] => [
-    { name: 'Home', path: '/' },
-    { name: 'Shop', path: '/products' },
+    { name: 'Sofas', path: '/sofas' },
+    { name: 'Storage', path: '/storage' },
+    { name: 'Bedroom', path: '/bedroom' },
+    { name: 'Office', path: '/office' },
+    { name: 'Study', path: '/study' },
+    { name: 'Kitchen', path: '/kitchen' },
+    { name: 'Kids', path: '/kids' },
+    { name: 'Outdoor', path: '/outdoor' },
     exploreRoute,
     ...(role === 'admin' || role === 'manager'
   ? [

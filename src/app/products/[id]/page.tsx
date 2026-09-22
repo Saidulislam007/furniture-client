@@ -14,6 +14,7 @@ import { sendToDeliveriesBackend } from '@/services/api/postDelivery';
 import { getProductReviewsFromBackend } from '@/services/api/reviewService';
 // কাস্টম মডুলার ফার্নিচার আপডেট সার্ভিস ফাংশনটি ইম্পোর্ট করা হলো ভাই
 import { updateFurnitureInBackend } from '@/services/api/furnitureService';
+import { getCategoryProductById } from '@/services/api/getCategoryProductById';
 
 
 const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ; 
@@ -82,14 +83,23 @@ export default function ProductDetailsPage() {
         const backupData = await getAllFurniture();
         if (backupData && Array.isArray(backupData)) {
           const foundBackup = backupData.find((p) => p._id === productId);
-          if (foundBackup) initEditForm(foundBackup);
+          if (foundBackup) {
+            initEditForm(foundBackup);
+            return;
+          }
         }
+
+        const categoryProduct = await getCategoryProductById(productId);
+        if (categoryProduct) initEditForm(categoryProduct);
         return;
       }
 
       const resData = await response.json();
       if (resData.success && resData.data) {
         initEditForm(resData.data);
+      } else {
+        const categoryProduct = await getCategoryProductById(productId);
+        if (categoryProduct) initEditForm(categoryProduct);
       }
     } catch (error) {
       console.error("❌ Failed to resolve product node from server api:", error);

@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { sendToDeliveriesBackend } from "@/services/api/postDelivery";
+import { getCategoryProductById } from "@/services/api/getCategoryProductById";
 import type { Product } from "@/types/product";
 
 const BACKEND_BASE_URL = process.env.NEXT_PUBLIC_BASE_URL;
@@ -40,7 +41,12 @@ export default function CheckoutPage() {
   const [error, setError] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("bkash");
   const [selectedColor, setSelectedColor] = useState(searchParams.get("color") || "");
-  const [quantity, setQuantity] = useState(1);
+  const [quantity, setQuantity] = useState(() => {
+    const requestedQuantity = Number(searchParams.get("quantity"));
+    return Number.isInteger(requestedQuantity) && requestedQuantity > 0
+      ? requestedQuantity
+      : 1;
+  });
 
   const [form, setForm] = useState({
     firstName: "",
@@ -82,13 +88,18 @@ export default function CheckoutPage() {
         const response = await fetch(`${BACKEND_BASE_URL}/api/v1/furniture/${productId}`, {
           cache: "no-store",
         });
-        const data = await response.json();
-        if (!response.ok || !data?.success || !data?.data) {
+        const data = response.ok ? await response.json() : null;
+        const resolvedProduct = data?.success && data?.data
+          ? data.data
+          : await getCategoryProductById(productId);
+
+        if (!resolvedProduct) {
           throw new Error(data?.error || "Product not found");
         }
-        setProduct(data.data);
-        if (data.data.colors?.length) {
-          setSelectedColor((current) => current || data.data.colors[0].name);
+        setProduct(resolvedProduct);
+        setQuantity((current) => Math.min(current, Math.max(1, resolvedProduct.stock || 1)));
+        if (resolvedProduct.colors?.length) {
+          setSelectedColor((current) => current || resolvedProduct.colors[0].name);
         }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Unable to load product.");
